@@ -42,6 +42,7 @@ function startApp() {
       await import("./Timesheet.js");
       await import("./recipes.js");
       await import("./products.js");
+      await import("./production.js");
       await import("./dashboard.js");
     })();
   }

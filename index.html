@@ -6,6 +6,13 @@
 
     <title>ระบบต้นทุนเครื่องแกง</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/auth.css" />
   </head>
@@ -122,16 +129,20 @@
           📦 5. รับเข้า / เบิกวัตถุดิบ
         </button>
 
+        <button class="nav-btn" data-section="production">
+          🏭 6. การผลิต
+        </button>
+
         <button class="nav-btn" data-section="labor">
-          💰 6. ค่าแรงและเงินเดือน
+          💰 7. ค่าแรงและเงินเดือน
         </button>
 
         <button class="nav-btn" data-section="overhead">
-          ⚙️ 7. ค่าใช้จ่ายการผลิต (OH)
+          ⚙️ 8. ค่าใช้จ่ายการผลิต (OH)
         </button>
 
         <button class="nav-btn" data-section="sales">
-          🛒 8. การขาย
+          🛒 9. การขาย
         </button>
       </nav>
 
@@ -194,9 +205,14 @@
             <strong id="dashOHThisMonth">฿0.00</strong>
           </div>
 
-          <div class="card muted">
-            <span>สินค้าสำเร็จรูป</span>
-            <strong>ยังไม่มีระบบผลิต</strong>
+          <div class="card">
+            <span>ผลิตจริงเดือนนี้</span>
+            <strong id="dashProducedQty">0 หน่วย</strong>
+          </div>
+
+          <div class="card">
+            <span>ต้นทุนการผลิตเดือนนี้</span>
+            <strong id="dashProductionCost">฿0.00</strong>
           </div>
 
           <div class="card muted">
@@ -517,13 +533,110 @@
       </section>
 
       <!-- =========================
+         PRODUCTION (การผลิต / ใบผลิต)
+    ========================== -->
+
+      <section id="production" class="section">
+        <div class="section-head">
+          <div>
+            <h2>🏭 6. การผลิต</h2>
+            <p>
+              สร้างใบผลิต (MO) — ตัดสต็อกวัตถุดิบตามสูตรทันที
+              พร้อมคำนวณต้นทุน DM + DL + OH ต่อหน่วยจากจำนวนผลิตจริง
+            </p>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="padding: 18px 18px 6px;">
+          <form id="moForm">
+            <div class="grid-2">
+              <label>
+                วันที่ผลิต
+                <input id="moDate" type="date" required />
+              </label>
+
+              <label>
+                สูตร
+                <select id="moRecipe" required>
+                  <option value="">-- เลือกสูตร --</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="grid-2">
+              <label>
+                แผนผลิต (หน่วย)
+                <input id="moPlanQty" type="number" min="1" step="1" placeholder="เช่น 100" required />
+              </label>
+
+              <label>
+                ผลิตจริง (หน่วย)
+                <input id="moActualQty" type="number" min="1" step="1" placeholder="เช่น 98" required />
+              </label>
+            </div>
+
+            <label>
+              หมายเหตุ
+              <input id="moNote" placeholder="เช่น ของเสียจากขั้นตอนบรรจุ" />
+            </label>
+
+            <div class="form-actions">
+              <button type="submit" class="primary">
+                + สร้างใบผลิต (ตัดสต็อกทันที)
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="summary">
+          <div class="card">
+            <span>จำนวนใบผลิตทั้งหมด</span>
+            <strong id="moCount">0</strong>
+          </div>
+
+          <div class="card">
+            <span>ผลิตจริงสะสม</span>
+            <strong id="moTotalQty">0 หน่วย</strong>
+          </div>
+
+          <div class="card">
+            <span>ต้นทุนการผลิตสะสม</span>
+            <strong id="moTotalCost">฿0.00</strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>เลขที่ใบผลิต</th>
+                <th>วันที่</th>
+                <th>สูตร</th>
+                <th>แผน / จริง</th>
+                <th>DM / DL / OH</th>
+                <th>ต้นทุนรวม</th>
+                <th>ต้นทุน/หน่วย</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+
+            <tbody id="moTableBody">
+              <tr>
+                <td colspan="8" class="empty">ยังไม่มีใบผลิต</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =========================
          LABOR & PAYROLL (ค่าแรงและเงินเดือน)
     ========================== -->
 
       <section id="labor" class="section">
         <div class="section-head">
           <div>
-            <h2>💰 6. ค่าแรงและเงินเดือน</h2>
+            <h2>💰 7. ค่าแรงและเงินเดือน</h2>
             <p>บันทึกเวลาทำงาน, รอบจ่ายเงินเดือน และประวัติการจ่าย</p>
           </div>
         </div>
@@ -767,7 +880,7 @@
       <section id="overhead" class="section">
         <div class="section-head">
           <div>
-            <h2>⚙️ 7. ค่าใช้จ่ายการผลิต (OH)</h2>
+            <h2>⚙️ 8. ค่าใช้จ่ายการผลิต (OH)</h2>
             <p>ข้อมูลค่าใช้จ่ายสำหรับนำไปคำนวณต้นทุน</p>
           </div>
         </div>
@@ -811,16 +924,16 @@
       <section id="sales" class="section">
         <div class="section-head">
           <div>
-            <h2>🛒 8. การขาย</h2>
+            <h2>🛒 9. การขาย</h2>
             <p>ราคาขายปลีกและราคาขายส่ง</p>
           </div>
         </div>
 
         <div class="placeholder-box">
           ตารางด้านล่างเป็นราคาขายอ้างอิง (ยังไม่ใช่ใบขายจริง) —
-          การบันทึกยอดขายจริงพร้อมตัดสต็อกสินค้าสำเร็จรูปและคำนวณ COGS
-          อัตโนมัติ ยังไม่ได้สร้าง เพราะต้องมีระบบสต็อกแบบ Lot
-          และระบบผลิตที่สร้างสต็อกสินค้าสำเร็จรูปให้ตัดก่อน
+          ตอนนี้เมนู 6 (การผลิต) คำนวณต้นทุนต่อรอบผลิตจริงแล้ว แต่ยังไม่มี
+          "สต็อกสินค้าสำเร็จรูป" ที่นับจำนวนคงเหลือให้ขายตัดออก
+          การบันทึกยอดขายจริงพร้อมคำนวณ COGS อัตโนมัติจึงยังไม่ได้สร้าง
         </div>
 
         <div class="table-wrap">
