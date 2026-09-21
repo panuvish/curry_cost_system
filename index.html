@@ -34,11 +34,9 @@
 
         <button class="nav-btn" data-section="overhead">⚙️ OH</button>
         <button class="nav-btn" data-section="ohAllocation">
-  📊 จัดสรร OH
-</button>
-<button class="nav-btn" data-section="sales">
-  🏷️ ราคาขาย
-</button>
+          📊 จัดสรร OH
+        </button>
+        <button class="nav-btn" data-section="sales">🏷️ ราคาขาย</button>
       </nav>
     </aside>
 
@@ -430,205 +428,136 @@
     </main>
 
     <section id="ohAllocation" class="section">
+      <div class="section-head">
+        <div>
+          <h2>📊 การจัดสรร OH</h2>
 
-  <div class="section-head">
+          <p>ฐานการจัดสรร: ชั่วโมงแรงงาน</p>
+        </div>
+      </div>
 
-    <div>
+      <div class="summary">
+        <div class="card">
+          <span> ชั่วโมงแรงงานรวม </span>
 
-      <h2>📊 การจัดสรร OH</h2>
+          <strong id="ohTotalHours"> 0 ชม. </strong>
+        </div>
+      </div>
 
-      <p>
-        ฐานการจัดสรร: ชั่วโมงแรงงาน
-      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ฝ่าย</th>
 
-    </div>
+              <th>จำนวนคน</th>
 
-  </div>
+              <th>ชั่วโมงแรงงาน</th>
 
+              <th>ค่าแรง/วัน</th>
 
-  <div class="summary">
+              <th>สัดส่วน</th>
 
-    <div class="card">
+              <th>ฐานจัดสรร</th>
+            </tr>
+          </thead>
 
-      <span>
-        ชั่วโมงแรงงานรวม
-      </span>
+          <tbody id="ohAllocationTable">
+            <tr>
+              <td colspan="6" style="text-align: center">ยังไม่มีข้อมูล</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-      <strong id="ohTotalHours">
-        0 ชม.
-      </strong>
+    <section id="sales" class="section">
+      <div class="section-head">
+        <div>
+          <h2>🏷️ ราคาขาย</h2>
 
-    </div>
+          <p>ราคาขายปลีกและราคาขายส่ง</p>
+        </div>
+      </div>
 
-  </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>สินค้า</th>
 
+              <th>ขนาด</th>
 
-  <div class="table-wrap">
+              <th>ขายปลีก</th>
 
-    <table>
+              <th>ขายส่ง</th>
+            </tr>
+          </thead>
 
-      <thead>
+          <tbody>
+            <tr>
+              <td>เครื่องแกงส้ม</td>
 
-        <tr>
+              <td>50 กรัม</td>
 
-          <th>ฝ่าย</th>
+              <td>฿12.00</td>
 
-          <th>จำนวนคน</th>
+              <td>฿10.00</td>
+            </tr>
 
-          <th>ชั่วโมงแรงงาน</th>
+            <tr>
+              <td>เครื่องแกงเผ็ด</td>
 
-          <th>ค่าแรง/วัน</th>
+              <td>50 กรัม</td>
 
-          <th>สัดส่วน</th>
+              <td>฿12.00</td>
 
-          <th>ฐานจัดสรร</th>
+              <td>฿10.00</td>
+            </tr>
 
-        </tr>
+            <tr>
+              <td>เครื่องแกงกะทิ</td>
 
-      </thead>
+              <td>50 กรัม</td>
 
+              <td>฿12.00</td>
 
-      <tbody id="ohAllocationTable">
+              <td>฿10.00</td>
+            </tr>
 
-        <tr>
+            <tr>
+              <td>เครื่องแกงส้ม</td>
 
-          <td
-            colspan="6"
-            style="text-align:center;">
+              <td>500 กรัม</td>
 
-            ยังไม่มีข้อมูล
+              <td>฿260.00</td>
 
-          </td>
+              <td>฿250.00</td>
+            </tr>
 
-        </tr>
+            <tr>
+              <td>เครื่องแกงเผ็ด</td>
 
-      </tbody>
+              <td>500 กรัม</td>
 
-    </table>
+              <td>฿180.00</td>
 
-  </div>
+              <td>฿170.00</td>
+            </tr>
 
-</section>
+            <tr>
+              <td>เครื่องแกงกะทิ</td>
 
-<section id="sales" class="section">
+              <td>500 กรัม</td>
 
-  <div class="section-head">
+              <td>฿180.00</td>
 
-    <div>
-
-      <h2>🏷️ ราคาขาย</h2>
-
-      <p>
-        ราคาขายปลีกและราคาขายส่ง
-      </p>
-
-    </div>
-
-  </div>
-
-
-  <div class="table-wrap">
-
-    <table>
-
-      <thead>
-
-        <tr>
-
-          <th>สินค้า</th>
-
-          <th>ขนาด</th>
-
-          <th>ขายปลีก</th>
-
-          <th>ขายส่ง</th>
-
-        </tr>
-
-      </thead>
-
-
-      <tbody>
-
-        <tr>
-
-          <td>เครื่องแกงส้ม</td>
-
-          <td>50 กรัม</td>
-
-          <td>฿12.00</td>
-
-          <td>฿10.00</td>
-
-        </tr>
-
-        <tr>
-
-          <td>เครื่องแกงเผ็ด</td>
-
-          <td>50 กรัม</td>
-
-          <td>฿12.00</td>
-
-          <td>฿10.00</td>
-
-        </tr>
-
-        <tr>
-
-          <td>เครื่องแกงกะทิ</td>
-
-          <td>50 กรัม</td>
-
-          <td>฿12.00</td>
-
-          <td>฿10.00</td>
-
-        </tr>
-
-        <tr>
-
-          <td>เครื่องแกงส้ม</td>
-
-          <td>500 กรัม</td>
-
-          <td>฿260.00</td>
-
-          <td>฿250.00</td>
-
-        </tr>
-
-        <tr>
-
-          <td>เครื่องแกงเผ็ด</td>
-
-          <td>500 กรัม</td>
-
-          <td>฿180.00</td>
-
-          <td>฿170.00</td>
-
-        </tr>
-
-        <tr>
-
-          <td>เครื่องแกงกะทิ</td>
-
-          <td>500 กรัม</td>
-
-          <td>฿180.00</td>
-
-          <td>฿170.00</td>
-
-        </tr>
-
-      </tbody>
-
-    </table>
-
-  </div>
-
-</section>
+              <td>฿170.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
     <!-- =========================
        INGREDIENT MODAL
@@ -870,7 +799,6 @@
     <!-- APP -->
 
     <script type="module" src="js/app.js"></script>
-<script type="module" src="js/employees.js"></script>
-    
+    <script type="module" src="js/employees.js"></script>
   </body>
 </html>

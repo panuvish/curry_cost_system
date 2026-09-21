@@ -44,16 +44,25 @@ function money(value) {
 }
 
 // ---------------- Navigation ----------------
-document.querySelectorAll(".nav-btn").forEach((btn) => {
+document.querySelectorAll(".nav-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    document
-      .querySelectorAll(".nav-btn")
-      .forEach((x) => x.classList.remove("active"));
-    document
-      .querySelectorAll(".section")
-      .forEach((x) => x.classList.remove("active"));
+
+    document.querySelectorAll(".nav-btn")
+      .forEach(x => x.classList.remove("active"));
+
+    document.querySelectorAll(".section")
+      .forEach(x => x.classList.remove("active"));
+
     btn.classList.add("active");
+
     $(btn.dataset.section).classList.add("active");
+
+    // เลื่อนหน้าเว็บกลับไปด้านบนทุกครั้งที่เปลี่ยนเมนู
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
   });
 });
 

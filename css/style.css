@@ -41,6 +41,7 @@ nav {
 .main {
   margin-left: 230px;
   padding: 28px;
+  min-height: 100vh;
 }
 header h1 {
   margin: 0 0 5px;
@@ -516,4 +517,340 @@ select {
   .cost-summary {
     flex-direction: column;
   }
+}
+
+/* =====================================================
+   EMPLOYEE
+===================================================== */
+
+.employee-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
+/* =====================================================
+   EMPLOYEE MODAL
+===================================================== */
+
+#employeeModal .modal-box {
+  width: 600px;
+  max-width: 95%;
+}
+
+#employeeModal .modal-head {
+  margin-bottom: 20px;
+}
+
+#employeeModal .modal-head h3 {
+  font-size: 20px;
+}
+
+
+/* =====================================================
+   OH ALLOCATION
+===================================================== */
+
+#ohAllocation .card {
+  min-height: 100px;
+}
+
+#ohAllocationTable td {
+  vertical-align: middle;
+}
+
+#ohAllocationTable td:nth-child(3),
+#ohAllocationTable td:nth-child(4),
+#ohAllocationTable td:nth-child(5) {
+  font-weight: 600;
+}
+
+
+/* =====================================================
+   SALES
+===================================================== */
+
+#sales .table-wrap {
+  margin-top: 10px;
+}
+
+#sales table th {
+  background: #f8fafc;
+}
+
+#sales table td {
+  vertical-align: middle;
+}
+
+#sales table td:nth-child(3),
+#sales table td:nth-child(4) {
+  font-weight: 700;
+}
+
+#sales table tbody tr:hover {
+  background: #f8fafc;
+}
+
+
+/* =====================================================
+   NAVIGATION เพิ่มเติม
+===================================================== */
+
+.nav-btn {
+  transition: 0.2s ease;
+}
+
+.nav-btn:hover {
+  transform: translateX(2px);
+}
+
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.primary {
+  transition: 0.2s ease;
+}
+
+.primary:hover {
+  opacity: 0.9;
+}
+
+.secondary {
+  transition: 0.2s ease;
+}
+
+.secondary:hover {
+  background: #d1d5db;
+}
+
+.danger {
+  transition: 0.2s ease;
+}
+
+.danger:hover {
+  background: #fecaca;
+}
+
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+.table-wrap table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.table-wrap table tbody tr:hover {
+  background: #f8fafc;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 900px) {
+
+  .main {
+    padding: 20px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 800px;
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  #employeeModal .modal-box {
+    width: 100%;
+  }
+
+  #employeeModal .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+/* =====================================================
+   FIX OH ALLOCATION
+===================================================== */
+
+#ohAllocation {
+  width: 100%;
+}
+
+#ohAllocation .summary {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr);
+  margin-bottom: 20px;
+}
+
+#ohAllocation .card {
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#ohAllocation .card span {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+#ohAllocation .card strong {
+  color: #173b7a;
+  font-size: 26px;
+  margin-top: 8px;
+}
+
+#ohAllocation .table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#ohAllocation table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+#ohAllocation th,
+#ohAllocation td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+#ohAllocation th {
+  background: #f8fafc;
+  color: #1f2937;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#ohAllocation td {
+  color: #1f2937;
+  background: white;
+}
+
+#ohAllocation tbody tr:hover td {
+  background: #f8fafc;
+}
+
+/* คอลัมน์ฝ่าย */
+#ohAllocation th:first-child,
+#ohAllocation td:first-child {
+  width: 30%;
+  min-width: 230px;
+  font-weight: 600;
+}
+
+/* ตัวเลข */
+#ohAllocation td:nth-child(2),
+#ohAllocation td:nth-child(3),
+#ohAllocation td:nth-child(4),
+#ohAllocation td:nth-child(5) {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ฐานจัดสรร */
+#ohAllocation td:last-child {
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  #ohAllocation table {
+    min-width: 800px;
+  }
+
+}
+
+/* =====================================================
+   FIX LAYOUT - OH ALLOCATION & SALES
+===================================================== */
+
+#ohAllocation,
+#sales {
+  padding-top: 10px;
+}
+
+/* หัวข้อของแต่ละหน้า */
+#ohAllocation .section-head,
+#sales .section-head {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* กล่องสรุป */
+#ohAllocation .summary {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* ตาราง */
+#ohAllocation .table-wrap,
+#sales .table-wrap {
+  margin-top: 0;
+  width: 100%;
+}
+
+/* ป้องกันตารางลอย/กว้างผิด */
+#ohAllocation table,
+#sales table {
+  width: 100%;
+}
+
+/* ให้หัวตารางและข้อมูลแสดงปกติ */
+#ohAllocation th,
+#ohAllocation td,
+#sales th,
+#sales td {
+  display: table-cell;
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ชื่อฝ่าย */
+#ohAllocation td:first-child {
+  min-width: 250px;
+  font-weight: 600;
+}
+
+/* ชื่อสินค้า */
+#sales td:first-child {
+  min-width: 250px;
+  font-weight: 600;
+}
+
+/* ราคาขาย */
+#sales td:nth-child(3),
+#sales td:nth-child(4) {
+  font-weight: 700;
+}
+
+/* Hover */
+#ohAllocation tbody tr:hover,
+#sales tbody tr:hover {
+  background: #f8fafc;
 }

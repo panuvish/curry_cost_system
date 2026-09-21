@@ -350,7 +350,7 @@ function renderOHAllocation() {
   employees
     .filter((x) => x.active !== false)
     .forEach((employee) => {
-      const department = employee.department || "ไม่ระบุ";
+      const department = employee.department?.trim() || "ไม่ระบุ";
 
       if (!departmentMap[department]) {
         departmentMap[department] = {
@@ -392,34 +392,34 @@ function renderOHAllocation() {
       const percentage = totalHours > 0 ? (data.hours / totalHours) * 100 : 0;
 
       return `
-        <tr>
+      <tr>
 
-          <td>
-            ${escapeHtml(department)}
-          </td>
+        <td>
+          ${escapeHtml(department)}
+        </td>
 
-          <td>
-            ${data.people}
-          </td>
+        <td>
+          ${data.people}
+        </td>
 
-          <td>
-            ${money(data.hours)}
-          </td>
+        <td>
+          ${money(data.hours)}
+        </td>
 
-          <td>
-            ฿${money(data.wages)}
-          </td>
+        <td>
+          ฿${money(data.wages)}
+        </td>
 
-          <td>
-            ${percentage.toFixed(2)}%
-          </td>
+        <td>
+          ${percentage.toFixed(2)}%
+        </td>
 
-          <td>
-            ชั่วโมงแรงงาน
-          </td>
+        <td>
+          ชั่วโมงแรงงาน
+        </td>
 
-        </tr>
-      `;
+      </tr>
+    `;
     })
     .join("");
 
@@ -454,69 +454,71 @@ export async function seedEmployees() {
   }
 
   const employeeData = [
-    {
-      code: "01",
-      name: "นางสายใจ เรืองกูล",
-      department: "แผนกการเงินและบัญชี",
-      hourlyRate: 65,
-      workHours: 8,
-      active: true,
-    },
 
-    {
-      code: "02",
-      name: "นางหยวน สุวรรณชาตรี",
-      department: "แผนกผลิต",
-      hourlyRate: 55,
-      workHours: 8,
-      active: true,
-    },
+  {
+    code: "01",
+    name: "นางสายใจ เรืองกูล",
+    department: "แผนกการเงินและบัญชี",
+    hourlyRate: 65,
+    workHours: 8,
+    active: true
+  },
 
-    {
-      code: "03",
-      name: "นางผ่อนศรี อมรรัตน์",
-      department: "แผนกผลิต",
-      hourlyRate: 55,
-      workHours: 8,
-      active: true,
-    },
+  {
+    code: "02",
+    name: "นางหยวน สุวรรณชาตรี",
+    department: "แผนกผลิต",
+    hourlyRate: 55,
+    workHours: 8,
+    active: true
+  },
 
-    {
-      code: "04",
-      name: "นางสาวสุภาภรณ์ แสงจันทร์",
-      department: "แผนกผลิต",
-      hourlyRate: 55,
-      workHours: 8,
-      active: true,
-    },
+  {
+    code: "03",
+    name: "นางผ่อนศรี อมรรัตน์",
+    department: "แผนกผลิต",
+    hourlyRate: 55,
+    workHours: 8,
+    active: true
+  },
 
-    {
-      code: "05",
-      name: "นางสาวพัชรี คงทอง",
-      department: "ฝ่ายจัดซื้อและเตรียมวัตถุดิบ",
-      hourlyRate: 45,
-      workHours: 8,
-      active: true,
-    },
+  {
+    code: "04",
+    name: "นางสาวสุภาภรณ์ แสงจันทร์",
+    department: "แผนกผลิต",
+    hourlyRate: 55,
+    workHours: 8,
+    active: true
+  },
 
-    {
-      code: "06",
-      name: "นางสาวอรทัย ชูช่วย",
-      department: "ฝ่ายบรรจุภัณฑ์",
-      hourlyRate: 40,
-      workHours: 8,
-      active: true,
-    },
+  {
+    code: "05",
+    name: "นางสาวพัชรี คงทอง",
+    department: "ฝ่ายจัดซื้อและเตรียมวัตถุดิบ",
+    hourlyRate: 45,
+    workHours: 8,
+    active: true
+  },
 
-    {
-      code: "07",
-      name: "นางสาวจริงใจ แก้วมณี",
-      department: "ฝ่ายบรรจุภัณฑ์",
-      hourlyRate: 40,
-      workHours: 8,
-      active: true,
-    },
-  ];
+  {
+    code: "06",
+    name: "นางสาวอรทัย ชูช่วย",
+    department: "ฝ่ายบรรจุภัณฑ์",
+    hourlyRate: 40,
+    workHours: 8,
+    active: true
+  },
+
+  {
+    code: "07",
+    name: "นางสาวจริงใจ แก้วมณี",
+    department: "ฝ่ายบรรจุภัณฑ์",
+    hourlyRate: 40,
+    workHours: 8,
+    active: true
+  }
+
+];
 
   try {
     for (const employee of employeeData) {
