@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>ระบบต้นทุนเครื่องแกง</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <!-- =========================
+       SIDEBAR
+  ========================== -->
+
+    <aside class="sidebar">
+      <h2>🌶️ Curry Cost</h2>
+
+      <nav>
+        <button class="nav-btn active" data-section="ingredients">
+          🌿 วัตถุดิบ
+        </button>
+
+        <button class="nav-btn" data-section="recipes">
+          🍛 สูตรเครื่องแกง
+        </button>
+
+        <button class="nav-btn" data-section="labor">💰 ค่าแรง</button>
+
+        <button class="nav-btn" data-section="overhead">⚙️ OH</button>
+      </nav>
+    </aside>
+
+    <!-- =========================
+       MAIN
+  ========================== -->
+
+    <main class="main">
+      <header>
+        <h1>ระบบต้นทุนเครื่องแกง</h1>
+
+        <p>Firebase Firestore • Realtime CRUD</p>
+      </header>
+
+      <!-- =========================
+         INGREDIENTS
+    ========================== -->
+
+      <section id="ingredients" class="section active">
+        <div class="section-head">
+          <div>
+            <h2>🌿 วัตถุดิบและบรรจุภัณฑ์</h2>
+
+            <p>เพิ่ม แก้ไข ลบ และดูข้อมูลแบบ Realtime</p>
+          </div>
+
+          <div>
+            <button id="seedBtn" class="secondary">นำเข้าข้อมูลเริ่มต้น</button>
+
+            <button id="addIngredientBtn" class="primary">
+              + เพิ่มวัตถุดิบ
+            </button>
+          </div>
+        </div>
+
+        <!-- SUMMARY -->
+
+        <div class="summary">
+          <div class="card">
+            <span>จำนวนรายการ</span>
+
+            <strong id="ingredientCount"> 0 </strong>
+          </div>
+
+          <div class="card">
+            <span>วัตถุดิบ</span>
+
+            <strong id="rawCount"> 0 </strong>
+          </div>
+
+          <div class="card">
+            <span>บรรจุภัณฑ์</span>
+
+            <strong id="packCount"> 0 </strong>
+          </div>
+        </div>
+
+        <!-- SEARCH -->
+
+        <input
+          id="ingredientSearch"
+          class="search"
+          placeholder="ค้นหาชื่อหรือรหัสวัตถุดิบ..."
+        />
+
+        <!-- TABLE -->
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัส</th>
+
+                <th>รายการ</th>
+
+                <th>ประเภท</th>
+
+                <th>จำนวนซื้อ</th>
+
+                <th>ราคา</th>
+
+                <th>ต้นทุน/หน่วย</th>
+
+                <th>หน่วย</th>
+
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+
+            <tbody id="ingredientTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =========================
+         RECIPES
+    ========================== -->
+
+      <section id="recipes" class="section">
+        <div class="section-head">
+          <div>
+            <h2>🍛 สูตรเครื่องแกง</h2>
+
+            <p>จัดการสูตรและคำนวณต้นทุนวัตถุดิบ (DM)</p>
+          </div>
+
+          <button id="addRecipeBtn" class="primary">+ เพิ่มสูตร</button>
+        </div>
+
+        <!-- SUMMARY -->
+
+        <div class="summary">
+          <div class="card">
+            <span>จำนวนสูตร</span>
+
+            <strong id="recipeCount"> 0 </strong>
+          </div>
+
+          <div class="card">
+            <span>สูตร 50g</span>
+
+            <strong id="recipe50Count"> 0 </strong>
+          </div>
+
+          <div class="card">
+            <span>สูตร 500g</span>
+
+            <strong id="recipe500Count"> 0 </strong>
+          </div>
+        </div>
+
+        <!-- RECIPE TABLE -->
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัสสูตร</th>
+
+                <th>ชื่อสูตร</th>
+
+                <th>ขนาด</th>
+
+                <th>จำนวนผลิต</th>
+
+                <th>ต้นทุน DM รวม</th>
+
+                <th>DM / หน่วย</th>
+
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+
+            <tbody id="recipeTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center">
+                  ยังไม่มีข้อมูลสูตร
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =========================
+         LABOR
+    ========================== -->
+
+      <section id="labor" class="section">
+        <div class="section-head">
+          <div>
+            <h2>💰 ค่าแรง (DL)</h2>
+
+            <p>อัตราค่าแรงต่อชั่วโมง</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัส</th>
+
+                <th>ฝ่าย</th>
+
+                <th>บาท/ชั่วโมง</th>
+              </tr>
+            </thead>
+
+            <tbody id="laborTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =========================
+         OVERHEAD
+    ========================== -->
+
+      <section id="overhead" class="section">
+        <div class="section-head">
+          <div>
+            <h2>⚙️ ค่าใช้จ่ายการผลิต (OH)</h2>
+
+            <p>ข้อมูลค่าใช้จ่ายสำหรับนำไปคำนวณต้นทุน</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัส</th>
+
+                <th>รายการ</th>
+
+                <th>อัตรา</th>
+
+                <th>หน่วย</th>
+              </tr>
+            </thead>
+
+            <tbody id="overheadTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- =========================
+       INGREDIENT MODAL
+  ========================== -->
+
+    <div id="ingredientModal" class="modal hidden">
+      <div class="modal-box">
+        <div class="modal-head">
+          <h3 id="modalTitle">เพิ่มวัตถุดิบ</h3>
+
+          <button type="button" id="closeModal" class="icon-btn">×</button>
+        </div>
+
+        <form id="ingredientForm">
+          <input type="hidden" id="ingredientId" />
+
+          <label>
+            รหัส
+
+            <input id="code" required placeholder="RM001" />
+          </label>
+
+          <label>
+            ชื่อรายการ
+
+            <input id="name" required placeholder="พริกสด" />
+          </label>
+
+          <label>
+            ประเภท
+
+            <select id="category" required>
+              <option value="DM">DM - วัตถุดิบ</option>
+
+              <option value="PACKAGING">บรรจุภัณฑ์</option>
+            </select>
+          </label>
+
+          <div class="grid-2">
+            <label>
+              จำนวนซื้อ
+
+              <input
+                id="purchaseQty"
+                type="number"
+                step="0.01"
+                min="0"
+                required
+              />
+            </label>
+
+            <label>
+              หน่วยซื้อ
+
+              <input id="purchaseUnit" required placeholder="กก. / ใบ / โหล" />
+            </label>
+          </div>
+
+          <label>
+            ราคาซื้อ
+
+            <input
+              id="purchasePrice"
+              type="number"
+              step="0.01"
+              min="0"
+              required
+            />
+          </label>
+
+          <label>
+            ต้นทุนต่อหน่วย
+
+            <input
+              id="costPerUnit"
+              type="number"
+              step="0.01"
+              min="0"
+              required
+            />
+          </label>
+
+          <label>
+            หน่วยต้นทุน
+
+            <input id="costUnit" required placeholder="กก. / ใบ" />
+          </label>
+
+          <div class="form-actions">
+            <button type="button" id="cancelBtn" class="secondary">
+              ยกเลิก
+            </button>
+
+            <button type="submit" class="primary">บันทึก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- STATUS -->
+
+    <div id="status" class="status"></div>
+
+    <!-- APP -->
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

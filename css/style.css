@@ -1,0 +1,519 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: Arial, "Noto Sans Thai", sans-serif;
+  background: #f5f7fb;
+  color: #1f2937;
+}
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 230px;
+  background: #173b7a;
+  color: white;
+  padding: 24px 16px;
+}
+.sidebar h2 {
+  margin: 0 0 28px;
+}
+nav {
+  display: grid;
+  gap: 8px;
+}
+.nav-btn {
+  border: 0;
+  background: transparent;
+  color: white;
+  text-align: left;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+}
+.nav-btn:hover,
+.nav-btn.active {
+  background: #24549d;
+}
+.main {
+  margin-left: 230px;
+  padding: 28px;
+}
+header h1 {
+  margin: 0 0 5px;
+}
+header p {
+  color: #6b7280;
+  margin-top: 0;
+}
+.section {
+  display: none;
+}
+.section.active {
+  display: block;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin: 25px 0 18px;
+}
+.section-head h2 {
+  margin-bottom: 5px;
+}
+.section-head p {
+  margin-top: 0;
+  color: #6b7280;
+}
+button {
+  border: 0;
+  border-radius: 7px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.primary {
+  background: #24549d;
+  color: white;
+}
+.secondary {
+  background: #e5e7eb;
+  color: #111827;
+  margin-right: 8px;
+}
+.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.06);
+}
+.card span {
+  color: #6b7280;
+  display: block;
+}
+.card strong {
+  font-size: 25px;
+  display: block;
+  margin-top: 6px;
+}
+.search {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.table-wrap {
+  background: white;
+  border-radius: 10px;
+  overflow-x: auto;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.06);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: 13px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+th {
+  background: #f8fafc;
+}
+.actions {
+  display: flex;
+  gap: 6px;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.hidden {
+  display: none;
+}
+.modal-box {
+  background: white;
+  width: min(520px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 22px;
+}
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.icon-btn {
+  background: transparent;
+  font-size: 26px;
+  padding: 0 5px;
+}
+form {
+  display: grid;
+  gap: 12px;
+}
+label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  font-size: 14px;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.status {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: #111827;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: none;
+}
+@media (max-width: 800px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+  }
+  .main {
+    margin-left: 0;
+  }
+  .summary {
+    grid-template-columns: 1fr;
+  }
+  .section-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* ========================================
+   RECIPE
+======================================== */
+
+.recipe-modal-box {
+  width: 850px;
+  max-width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Recipe title */
+
+.recipe-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.recipe-title-row h3 {
+  margin: 0;
+}
+
+.recipe-title-row span {
+  color: #777;
+  font-size: 13px;
+}
+
+/* Recipe row */
+
+.recipe-row {
+  display: grid;
+
+  grid-template-columns:
+    minmax(200px, 1fr)
+    120px
+    110px
+    60px;
+
+  gap: 10px;
+
+  align-items: center;
+
+  margin-bottom: 10px;
+}
+
+/* Select */
+
+.recipe-row select {
+  width: 100%;
+
+  padding: 9px;
+
+  border: 1px solid #ddd;
+
+  border-radius: 6px;
+
+  background: white;
+}
+
+/* Quantity */
+
+.recipe-row input {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 9px;
+
+  border: 1px solid #ddd;
+
+  border-radius: 6px;
+}
+
+/* Cost */
+
+.ingredient-cost {
+  text-align: right;
+
+  font-size: 14px;
+
+  font-weight: 600;
+}
+
+/* Remove button */
+
+.remove-row {
+  border: none;
+
+  background: #dc3545;
+
+  color: white;
+
+  padding: 8px 10px;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.remove-row:hover {
+  opacity: 0.85;
+}
+
+/* Cost summary */
+
+.cost-summary {
+  margin-top: 20px;
+
+  margin-bottom: 20px;
+
+  padding: 18px;
+
+  background: #f5f7fa;
+
+  border-radius: 8px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.cost-summary div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.cost-summary span {
+  color: #666;
+
+  font-size: 14px;
+}
+
+.cost-summary strong {
+  font-size: 20px;
+
+  color: #24549d;
+}
+
+/* Small table buttons */
+
+.small-btn {
+  border: none;
+
+  padding: 6px 10px;
+
+  border-radius: 5px;
+
+  cursor: pointer;
+
+  margin-right: 5px;
+
+  background: #24549d;
+
+  color: white;
+}
+
+.small-btn:hover {
+  opacity: 0.85;
+}
+
+.small-btn.danger {
+  background: #dc3545;
+
+  color: white;
+}
+
+/* Modal */
+
+.modal {
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  z-index: 9999;
+}
+
+.modal-box {
+  background: white;
+
+  width: 700px;
+
+  max-width: 90%;
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  padding: 25px;
+
+  border-radius: 12px;
+
+  box-sizing: border-box;
+}
+
+/* Modal header */
+
+.modal-head {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 20px;
+}
+
+.modal-head h3 {
+  margin: 0;
+}
+
+.icon-btn {
+  border: none;
+
+  background: transparent;
+
+  font-size: 28px;
+
+  cursor: pointer;
+
+  line-height: 1;
+}
+
+/* Form */
+
+.modal-box label {
+  display: block;
+
+  margin-bottom: 15px;
+
+  font-weight: 600;
+}
+
+.modal-box label input,
+.modal-box label select {
+  display: block;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  margin-top: 6px;
+
+  padding: 10px;
+
+  border: 1px solid #ddd;
+
+  border-radius: 6px;
+
+  font-size: 14px;
+}
+
+/* Form actions */
+
+.form-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+  .recipe-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ingredient-cost {
+    text-align: left;
+  }
+
+  .cost-summary {
+    flex-direction: column;
+  }
+}
