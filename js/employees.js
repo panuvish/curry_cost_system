@@ -13,7 +13,7 @@ import {
   deleteDoc,
   onSnapshot,
   writeBatch,
-  serverTimestamp
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 import { firebaseConfig } from "./firebase-config.js";
@@ -83,9 +83,13 @@ onSnapshot(
         ...d.data(),
       }))
       .sort((a, b) =>
-        String(a.code || "").localeCompare(String(b.code || ""), undefined, {
-          numeric: true,
-        }),
+        String(a.code || "").localeCompare(
+          String(b.code || ""),
+          undefined,
+          {
+            numeric: true,
+          },
+        ),
       );
 
     renderEmployees();
@@ -101,7 +105,8 @@ onSnapshot(
 // ===============================
 
 function renderEmployees() {
-  const keyword = $("employeeSearch")?.value.trim().toLowerCase() || "";
+  const keyword =
+    $("employeeSearch")?.value.trim().toLowerCase() || "";
 
   const list = employees.filter((employee) => {
     const text = `
@@ -192,13 +197,16 @@ function renderEmployees() {
   );
 
   const totalHours = activeEmployees.reduce(
-    (sum, employee) => sum + Number(employee.workHours || 0),
+    (sum, employee) =>
+      sum + Number(employee.workHours || 0),
     0,
   );
 
   const totalDailyWage = activeEmployees.reduce(
     (sum, employee) =>
-      sum + Number(employee.hourlyRate || 0) * Number(employee.workHours || 0),
+      sum +
+      Number(employee.hourlyRate || 0) *
+        Number(employee.workHours || 0),
     0,
   );
 
@@ -207,35 +215,44 @@ function renderEmployees() {
   }
 
   if ($("totalEmployeeHours")) {
-    $("totalEmployeeHours").textContent = `${totalHours.toFixed(2)} ชม.`;
+    $("totalEmployeeHours").textContent =
+      `${totalHours.toFixed(2)} ชม.`;
   }
 
   if ($("totalDailyWage")) {
-    $("totalDailyWage").textContent = `฿${money(totalDailyWage)}`;
+    $("totalDailyWage").textContent =
+      `฿${money(totalDailyWage)}`;
   }
 
   // ===============================
   // BUTTON EVENTS
   // ===============================
 
-  document.querySelectorAll("[data-edit-employee]").forEach((button) => {
-    button.addEventListener("click", () => {
-      openEmployeeEdit(button.dataset.editEmployee);
+  document
+    .querySelectorAll("[data-edit-employee]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        openEmployeeEdit(button.dataset.editEmployee);
+      });
     });
-  });
 
-  document.querySelectorAll("[data-delete-employee]").forEach((button) => {
-    button.addEventListener("click", () => {
-      deleteEmployee(button.dataset.deleteEmployee);
+  document
+    .querySelectorAll("[data-delete-employee]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        deleteEmployee(button.dataset.deleteEmployee);
+      });
     });
-  });
 }
 
 // ===============================
 // SEARCH
 // ===============================
 
-$("employeeSearch")?.addEventListener("input", renderEmployees);
+$("employeeSearch")?.addEventListener(
+  "input",
+  renderEmployees,
+);
 
 // ===============================
 // OPEN ADD
@@ -244,7 +261,8 @@ $("employeeSearch")?.addEventListener("input", renderEmployees);
 $("addEmployeeBtn")?.addEventListener("click", () => {
   resetEmployeeForm();
 
-  $("employeeModalTitle").textContent = "เพิ่มพนักงาน";
+  $("employeeModalTitle").textContent =
+    "เพิ่มพนักงาน";
 
   $("employeeModal").classList.remove("hidden");
 });
@@ -254,7 +272,9 @@ $("addEmployeeBtn")?.addEventListener("click", () => {
 // ===============================
 
 function openEmployeeEdit(id) {
-  const employee = employees.find((item) => item.id === id);
+  const employee = employees.find(
+    (item) => item.id === id,
+  );
 
   if (!employee) return;
 
@@ -262,19 +282,26 @@ function openEmployeeEdit(id) {
 
   $("employeeId").value = id;
 
-  $("employeeCode").value = employee.code || "";
+  $("employeeCode").value =
+    employee.code || "";
 
-  $("employeeName").value = employee.name || "";
+  $("employeeName").value =
+    employee.name || "";
 
-  $("employeeDepartment").value = employee.department || "";
+  $("employeeDepartment").value =
+    employee.department || "";
 
-  $("employeeRate").value = employee.hourlyRate ?? "";
+  $("employeeRate").value =
+    employee.hourlyRate ?? "";
 
-  $("employeeHours").value = employee.workHours ?? 8;
+  $("employeeHours").value =
+    employee.workHours ?? 8;
 
-  $("employeeActive").checked = employee.active !== false;
+  $("employeeActive").checked =
+    employee.active !== false;
 
-  $("employeeModalTitle").textContent = "แก้ไขข้อมูลพนักงาน";
+  $("employeeModalTitle").textContent =
+    "แก้ไขข้อมูลพนักงาน";
 
   $("employeeModal").classList.remove("hidden");
 }
@@ -305,82 +332,110 @@ function resetEmployeeForm() {
 // CLOSE MODAL
 // ===============================
 
-$("closeEmployeeModal")?.addEventListener("click", () => {
-  $("employeeModal").classList.add("hidden");
-});
+$("closeEmployeeModal")?.addEventListener(
+  "click",
+  () => {
+    $("employeeModal").classList.add("hidden");
+  },
+);
 
-$("cancelEmployeeBtn")?.addEventListener("click", () => {
-  $("employeeModal").classList.add("hidden");
-});
+$("cancelEmployeeBtn")?.addEventListener(
+  "click",
+  () => {
+    $("employeeModal").classList.add("hidden");
+  },
+);
 
 // ===============================
 // SAVE EMPLOYEE
 // ===============================
 
-$("employeeForm")?.addEventListener("submit", async (event) => {
-  event.preventDefault();
+$("employeeForm")?.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
 
-  const data = {
-    code: $("employeeCode").value.trim(),
+    const data = {
+  code: $("employeeCode").value.trim(),
+  name: $("employeeName").value.trim(),
+  department: $("employeeDepartment").value.trim(),
+  hourlyRate: Number($("employeeRate").value),
+  workHours: Number($("employeeHours").value),
+  active: $("employeeActive").checked,
+  updatedAt: serverTimestamp(),
+};
 
-    name: $("employeeName").value.trim(),
+    try {
+      if (editingEmployeeId) {
+        await updateDoc(
+          doc(
+            db,
+            "employees",
+            editingEmployeeId,
+          ),
+          data,
+        );
 
-    department: $("employeeDepartment").value.trim(),
+        showEmployeeStatus(
+          "แก้ไขข้อมูลพนักงานแล้ว",
+        );
+      } else {
+        await addDoc(employeeCol, {
+          ...data,
+          createdAt: serverTimestamp(),
+        });
 
-    hourlyRate: Number($("employeeRate").value),
+        showEmployeeStatus(
+          "เพิ่มพนักงานแล้ว",
+        );
+      }
 
-    workHours: Number($("employeeHours").value),
+      $("employeeModal").classList.add(
+        "hidden",
+      );
 
-    active: $("employeeActive").checked,
+      resetEmployeeForm();
+    } catch (error) {
+      console.error(error);
 
-    updatedAt: serverTimestamp(),
-  };
-
-  try {
-    if (editingEmployeeId) {
-      await updateDoc(doc(db, "employees", editingEmployeeId), data);
-
-      showEmployeeStatus("แก้ไขข้อมูลพนักงานแล้ว");
-    } else {
-      await addDoc(employeeCol, {
-        ...data,
-        createdAt: serverTimestamp(),
-      });
-
-      showEmployeeStatus("เพิ่มพนักงานแล้ว");
+      showEmployeeStatus(
+        "บันทึกข้อมูลพนักงานไม่สำเร็จ",
+      );
     }
-
-    $("employeeModal").classList.add("hidden");
-
-    resetEmployeeForm();
-  } catch (error) {
-    console.error(error);
-
-    showEmployeeStatus("บันทึกข้อมูลพนักงานไม่สำเร็จ");
-  }
-});
+  },
+);
 
 // ===============================
 // DELETE EMPLOYEE
 // ===============================
 
 async function deleteEmployee(id) {
-  const employee = employees.find((item) => item.id === id);
+  const employee = employees.find(
+    (item) => item.id === id,
+  );
 
   if (!employee) return;
 
-  const confirmDelete = confirm(`ต้องการลบ ${employee.name} ใช่หรือไม่?`);
+  const confirmDelete = confirm(
+    `ต้องการลบ ${employee.name} ใช่หรือไม่?`,
+  );
 
   if (!confirmDelete) return;
 
   try {
-    await deleteDoc(doc(db, "employees", id));
+    await deleteDoc(
+      doc(db, "employees", id),
+    );
 
-    showEmployeeStatus("ลบข้อมูลพนักงานแล้ว");
+    showEmployeeStatus(
+      "ลบข้อมูลพนักงานแล้ว",
+    );
   } catch (error) {
     console.error(error);
 
-    showEmployeeStatus("ลบข้อมูลไม่สำเร็จ");
+    showEmployeeStatus(
+      "ลบข้อมูลไม่สำเร็จ",
+    );
   }
 }
 
@@ -388,20 +443,21 @@ async function deleteEmployee(id) {
 // SEED EMPLOYEES
 // ===============================
 
-$("seedEmployeeBtn")?.addEventListener("click", seedEmployees);
+$("seedEmployeeBtn")?.addEventListener(
+  "click",
+  seedEmployees,
+);
 
 async function seedEmployees() {
   const confirmSeed = confirm(
-    "ต้องการรีเซ็ตข้อมูลพนักงานเป็น 7 คนหรือไม่?"
+    "ต้องการรีเซ็ตข้อมูลพนักงานเป็น 7 คนหรือไม่?",
   );
 
   if (!confirmSeed) return;
 
   try {
-    const batch = writeBatch(db);
-
     // ===============================
-    // ข้อมูลพนักงานที่ต้องการ
+    // ข้อมูลพนักงาน 7 คน
     // ===============================
 
     const employeeData = [
@@ -411,101 +467,128 @@ async function seedEmployees() {
         department: "ฝ่ายการเงินและบัญชี",
         hourlyRate: 65,
         workHours: 8,
-        active: true
+        active: true,
       },
+
       {
         code: "EMP002",
         name: "นางหยวน สุวรรณชาตรี",
         department: "ฝ่ายผลิต",
         hourlyRate: 55,
         workHours: 8,
-        active: true
+        active: true,
       },
+
       {
         code: "EMP003",
         name: "นางผ่อนศรี อมรรัตน์",
         department: "ฝ่ายผลิต",
         hourlyRate: 55,
         workHours: 8,
-        active: true
+        active: true,
       },
+
       {
         code: "EMP004",
         name: "นางสาวสุภาภรณ์ แสงจันทร์",
         department: "ฝ่ายผลิต",
         hourlyRate: 55,
         workHours: 8,
-        active: true
+        active: true,
       },
+
       {
         code: "EMP005",
         name: "นางสาวพัชรี คงทอง",
         department: "ฝ่ายจัดซื้อและเตรียมวัตถุดิบ",
         hourlyRate: 45,
         workHours: 8,
-        active: true
+        active: true,
       },
+
       {
         code: "EMP006",
         name: "นางสาวอรทัย ชูช่วย",
         department: "ฝ่ายบรรจุภัณฑ์",
         hourlyRate: 40,
         workHours: 8,
-        active: true
+        active: true,
       },
+
       {
         code: "EMP007",
         name: "นางสาวจริงใจ แก้วมณี",
         department: "ฝ่ายบรรจุภัณฑ์",
         hourlyRate: 40,
         workHours: 8,
-        active: true
-      }
+        active: true,
+      },
     ];
 
     // ===============================
-    // ลบข้อมูลพนักงานเดิมทั้งหมด
+    // STEP 1
+    // ลบข้อมูลเดิม
     // ===============================
 
-    employees.forEach((employee) => {
-      batch.delete(
-        doc(db, "employees", employee.id)
-      );
-    });
+    if (employees.length > 0) {
+      const deleteBatch = writeBatch(db);
+
+      employees.forEach((employee) => {
+        deleteBatch.delete(
+          doc(db, "employees", employee.id),
+        );
+      });
+
+      await deleteBatch.commit();
+    }
 
     // ===============================
+    // STEP 2
     // เพิ่มข้อมูลใหม่ 7 คน
     // ===============================
+
+    const insertBatch = writeBatch(db);
 
     employeeData.forEach((employee) => {
       const ref = doc(
         db,
         "employees",
-        employee.code
+        employee.code,
       );
 
-      batch.set(ref, {
+      insertBatch.set(ref, {
         ...employee,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+
+        createdAt:
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp(),
       });
     });
 
-    // ===============================
-    // บันทึกทั้งหมด
-    // ===============================
+    await insertBatch.commit();
 
-    await batch.commit();
+    // ===============================
+    // SUCCESS
+    // ===============================
 
     showEmployeeStatus(
-      "รีเซ็ตข้อมูลพนักงานเป็น 7 คนแล้ว"
+      "รีเซ็ตข้อมูลพนักงานเป็น 7 คนแล้ว",
+    );
+
+    console.log(
+      "Seed employees completed: 7 employees",
     );
 
   } catch (error) {
-    console.error("Seed employee error:", error);
+    console.error(
+      "Seed employee error:",
+      error,
+    );
 
     showEmployeeStatus(
-      "รีเซ็ตข้อมูลพนักงานไม่สำเร็จ"
+      "รีเซ็ตข้อมูลพนักงานไม่สำเร็จ",
     );
   }
 }

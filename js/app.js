@@ -960,7 +960,10 @@ function renderEmployees() {
 
   table.innerHTML = list
     .map((x) => {
-      const daily = Number(x.rate || 0) * Number(x.hours || 0);
+      const hourlyRate = Number(x.hourlyRate ?? x.rate ?? 0);
+const workHours = Number(x.workHours ?? x.hours ?? 0);
+
+const daily = hourlyRate * workHours;
 
       return `
 
@@ -979,11 +982,11 @@ function renderEmployees() {
           </td>
 
           <td>
-            ฿${money(x.rate)}
+            ${money(x.hourlyRate ?? x.rate ?? 0)}
           </td>
 
           <td>
-            ${money(x.hours)}
+            ${money(x.workHours ?? x.hours ?? 0)}
           </td>
 
           <td>
@@ -1022,15 +1025,18 @@ function renderEmployees() {
 
   $("employeeCount").textContent = employees.length;
 
-  const totalHours = employees.reduce(
-    (sum, x) => sum + Number(x.hours || 0),
-    0,
-  );
+const totalHours = employees.reduce(
+  (sum, x) => sum + Number(x.workHours ?? x.hours ?? 0),
+  0,
+);
 
-  const totalWage = employees.reduce(
-    (sum, x) => sum + Number(x.rate || 0) * Number(x.hours || 0),
-    0,
-  );
+const totalWage = employees.reduce(
+  (sum, x) =>
+    sum +
+    Number(x.hourlyRate ?? x.rate ?? 0) *
+      Number(x.workHours ?? x.hours ?? 0),
+  0,
+);
 
   $("totalEmployeeHours").textContent = `${money(totalHours)} ชม.`;
 
@@ -1082,9 +1088,11 @@ function openEmployeeEdit(id) {
 
   $("employeeDepartment").value = employee.department || "";
 
-  $("employeeRate").value = employee.rate ?? "";
+  $("employeeRate").value =
+  employee.hourlyRate ?? employee.rate ?? "";
 
-  $("employeeHours").value = employee.hours ?? 8;
+$("employeeHours").value =
+  employee.workHours ?? employee.hours ?? 8;
 
   $("employeeActive").checked = employee.active !== false;
 
@@ -1111,20 +1119,20 @@ $("employeeForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const data = {
-    code: $("employeeCode").value.trim(),
+  code: $("employeeCode").value.trim(),
 
-    name: $("employeeName").value.trim(),
+  name: $("employeeName").value.trim(),
 
-    department: $("employeeDepartment").value.trim(),
+  department: $("employeeDepartment").value.trim(),
 
-    rate: Number($("employeeRate").value),
+  hourlyRate: Number($("employeeRate").value),
 
-    hours: Number($("employeeHours").value),
+  workHours: Number($("employeeHours").value),
 
-    active: $("employeeActive").checked,
+  active: $("employeeActive").checked,
 
-    updatedAt: serverTimestamp(),
-  };
+  updatedAt: serverTimestamp(),
+};
 
   try {
     if (editingEmployeeId) {
@@ -1174,45 +1182,119 @@ async function deleteEmployee(id) {
 $("seedEmployeeBtn").addEventListener("click", seedEmployees);
 
 async function seedEmployees() {
-  if (!confirm("นำเข้าข้อมูลพนักงานตัวอย่างหรือไม่?")) return;
-
-  const data = [
-    ["EMP001", "นางสายใจ เรืองกูล", "ฝ่ายผลิต", 55, 8],
-
-    ["EMP002", "นายสมชาย ใจดี", "ฝ่ายจัดซื้อ/จัดเตรียมวัตถุดิบ", 45, 8],
-
-    ["EMP003", "นางสาวมาลี สุขใจ", "ฝ่ายบรรจุภัณฑ์", 40, 8],
-
-    ["EMP004", "นายกิตติพงษ์ แสงทอง", "ฝ่ายการเงินและบัญชี", 65, 8],
-  ];
-
-  const batch = writeBatch(db);
-
-  data.forEach(([code, name, department, rate, hours]) => {
-    const ref = doc(employeeCol);
-
-    batch.set(ref, {
-      code,
-      name,
-      department,
-      rate,
-      hours,
-      active: true,
-
-      createdAt: serverTimestamp(),
-
-      updatedAt: serverTimestamp(),
-    });
-  });
+  if (!confirm("ต้องการรีเซ็ตข้อมูลพนักงานเป็น 7 คนหรือไม่?")) {
+    return;
+  }
 
   try {
-    await batch.commit();
+    // ==========================================
+    // พนักงาน 7 คน
+    // ==========================================
 
-    showStatus("นำเข้าข้อมูลพนักงานแล้ว");
+    const employeeData = [
+      {
+        code: "EMP001",
+        name: "นางสายใจ เรืองกูล",
+        department: "ฝ่ายการเงินและบัญชี",
+        hourlyRate: 65,
+        workHours: 8,
+        active: true,
+      },
+      {
+        code: "EMP002",
+        name: "นางหยวน สุวรรณชาตรี",
+        department: "ฝ่ายผลิต",
+        hourlyRate: 55,
+        workHours: 8,
+        active: true,
+      },
+      {
+        code: "EMP003",
+        name: "นางผ่อนศรี อมรรัตน์",
+        department: "ฝ่ายผลิต",
+        hourlyRate: 55,
+        workHours: 8,
+        active: true,
+      },
+      {
+        code: "EMP004",
+        name: "นางสาวสุภาภรณ์ แสงจันทร์",
+        department: "ฝ่ายผลิต",
+        hourlyRate: 55,
+        workHours: 8,
+        active: true,
+      },
+      {
+        code: "EMP005",
+        name: "นางสาวพัชรี คงทอง",
+        department: "ฝ่ายจัดซื้อและเตรียมวัตถุดิบ",
+        hourlyRate: 45,
+        workHours: 8,
+        active: true,
+      },
+      {
+        code: "EMP006",
+        name: "นางสาวอรทัย ชูช่วย",
+        department: "ฝ่ายบรรจุภัณฑ์",
+        hourlyRate: 40,
+        workHours: 8,
+        active: true,
+      },
+      {
+        code: "EMP007",
+        name: "นางสาวจริงใจ แก้วมณี",
+        department: "ฝ่ายบรรจุภัณฑ์",
+        hourlyRate: 40,
+        workHours: 8,
+        active: true,
+      },
+    ];
+
+    // ==========================================
+    // ลบพนักงานเดิมทั้งหมด
+    // ==========================================
+
+    const deleteBatch = writeBatch(db);
+
+    employees.forEach((employee) => {
+      deleteBatch.delete(
+        doc(db, "employees", employee.id)
+      );
+    });
+
+    await deleteBatch.commit();
+
+    // ==========================================
+    // เพิ่มพนักงาน 7 คนใหม่
+    // ใช้ EMP001 - EMP007 เป็น Document ID
+    // ==========================================
+
+    const insertBatch = writeBatch(db);
+
+    employeeData.forEach((employee) => {
+      const employeeRef = doc(
+        db,
+        "employees",
+        employee.code
+      );
+
+      insertBatch.set(employeeRef, {
+        ...employee,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    });
+
+    await insertBatch.commit();
+
+    showStatus("รีเซ็ตข้อมูลพนักงานเป็น 7 คนแล้ว");
+
+    console.log("Employee seed completed:", employeeData);
+
   } catch (error) {
-    console.error(error);
+    console.error("Seed employee error:", error);
 
-    showStatus("นำเข้าพนักงานไม่สำเร็จ");
+    showStatus("รีเซ็ตข้อมูลพนักงานไม่สำเร็จ");
   }
 }
 
@@ -1225,198 +1307,135 @@ function renderOHAllocation() {
 
   if (!table) return;
 
-  const activeEmployees = employees.filter((x) => x.active !== false);
+  const activeEmployees = employees.filter(
+    (x) => x.active !== false
+  );
 
+  // ชั่วโมงแรงงานรวม
   const totalHours = activeEmployees.reduce(
-    (sum, x) => sum + Number(x.hours || 0),
-    0,
+    (sum, x) =>
+      sum + Number(x.workHours ?? x.hours ?? 0),
+    0
   );
 
+  // ค่าแรงรวม
   const totalLabor = activeEmployees.reduce(
-    (sum, x) => sum + Number(x.rate || 0) * Number(x.hours || 0),
-    0,
+    (sum, x) =>
+      sum +
+      Number(x.hourlyRate ?? x.rate ?? 0) *
+        Number(x.workHours ?? x.hours ?? 0),
+    0
   );
 
-  const totalOH = overheadData.reduce((sum, x) => sum + Number(x.rate || 0), 0);
+  // OH รวม
+  const totalOH = overheadData.reduce(
+    (sum, x) => sum + Number(x.rate || 0),
+    0
+  );
 
-  $("ohTotalHours").textContent = `${money(totalHours)} ชม.`;
+  // แสดงยอดรวมด้านบน
+  $("ohTotalHours").textContent =
+    `${money(totalHours)} ชม.`;
 
-  $("ohTotalLabor").textContent = `฿${money(totalLabor)}`;
+  $("ohTotalLabor").textContent =
+    `฿${money(totalLabor)}`;
 
-  $("ohTotalCost").textContent = `฿${money(totalOH)}`;
+  $("ohTotalCost").textContent =
+    `฿${money(totalOH)}`;
 
+  // ถ้าไม่มีพนักงาน
   if (activeEmployees.length === 0) {
     table.innerHTML = `
-
       <tr>
-
-        <td
-          colspan="6"
-          class="empty"
-        >
+        <td colspan="6" class="empty">
           ยังไม่มีข้อมูลพนักงาน
         </td>
-
       </tr>
-
     `;
 
     return;
   }
 
+  // ====================================================
+  // รวมข้อมูลตามฝ่าย
+  // ====================================================
+
   const groups = {};
 
   activeEmployees.forEach((employee) => {
-    const department = employee.department || "ไม่ระบุ";
+    const department =
+      employee.department || "ไม่ระบุ";
 
     if (!groups[department]) {
       groups[department] = {
         people: 0,
-
         hours: 0,
-
         wage: 0,
       };
     }
 
+    const workHours = Number(
+      employee.workHours ?? employee.hours ?? 0
+    );
+
+    const hourlyRate = Number(
+      employee.hourlyRate ?? employee.rate ?? 0
+    );
+
     groups[department].people += 1;
 
-    groups[department].hours += Number(employee.hours || 0);
+    groups[department].hours += workHours;
 
     groups[department].wage +=
-      Number(employee.rate || 0) * Number(employee.hours || 0);
+      hourlyRate * workHours;
   });
+
+  // ====================================================
+  // แสดงตาราง
+  // ====================================================
 
   table.innerHTML = Object.entries(groups)
     .map(([department, data]) => {
-      const ratio = totalHours > 0 ? data.hours / totalHours : 0;
+      const ratio =
+        totalHours > 0
+          ? data.hours / totalHours
+          : 0;
+
+      const allocatedOH =
+        totalOH * ratio;
 
       return `
-
-            <tr>
-
-              <td>
-                ${escapeHtml(department)}
-              </td>
-
-              <td>
-                ${data.people}
-              </td>
-
-              <td>
-                ${money(data.hours)}
-              </td>
-
-              <td>
-                ฿${money(data.wage)}
-              </td>
-
-              <td>
-                ${(ratio * 100).toFixed(2)}%
-              </td>
-
-              <td>
-                ฿${money(totalOH * ratio)}
-              </td>
-
-            </tr>
-
-          `;
-    })
-    .join("");
-}
-
-// ======================================================
-// RECIPES PLACEHOLDER
-// ======================================================
-
-onSnapshot(
-  collection(db, "recipes"),
-
-  (snapshot) => {
-    const recipes = snapshot.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    }));
-
-    $("recipeCount").textContent = recipes.length;
-
-    $("recipe50Count").textContent = recipes.filter((x) =>
-      String(x.size || "").includes("50"),
-    ).length;
-
-    $("recipe500Count").textContent = recipes.filter((x) =>
-      String(x.size || "").includes("500"),
-    ).length;
-
-    if (recipes.length === 0) {
-      $("recipeTableBody").innerHTML = `
-
         <tr>
 
-          <td
-            colspan="7"
-            class="empty"
-          >
-            ยังไม่มีข้อมูลสูตร
+          <td>
+            ${escapeHtml(department)}
+          </td>
+
+          <td>
+            ${data.people}
+          </td>
+
+          <td>
+            ${money(data.hours)}
+          </td>
+
+          <td>
+            ฿${money(data.wage)}
+          </td>
+
+          <td>
+            ${(ratio * 100).toFixed(2)}%
+          </td>
+
+          <td>
+            ฿${money(allocatedOH)}
           </td>
 
         </tr>
-
       `;
-
-      return;
-    }
-
-    $("recipeTableBody").innerHTML = recipes
-      .map(
-        (x) => `
-
-          <tr>
-
-            <td>
-              ${escapeHtml(x.code || "-")}
-            </td>
-
-            <td>
-              ${escapeHtml(x.name || "-")}
-            </td>
-
-            <td>
-              ${escapeHtml(x.size || "-")}
-            </td>
-
-            <td>
-              ${money(x.productionQty || 0)}
-            </td>
-
-            <td>
-              ฿${money(x.totalDM || 0)}
-            </td>
-
-            <td>
-              ฿${money(x.dmPerUnit || 0)}
-            </td>
-
-            <td>
-              -
-            </td>
-
-          </tr>
-
-        `,
-      )
-      .join("");
-  },
-);
-
-// ======================================================
-// RECIPE BUTTON
-// ======================================================
-
-$("addRecipeBtn").addEventListener("click", () => {
-  showStatus("ส่วนสูตรเครื่องแกงจะทำต่อเมื่อมีข้อมูลสูตร");
-});
+    })
+    .join("");
+}
 
 // ======================================================
 // END
