@@ -5,6 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
 import {
+  getFirestore,
   collection,
   addDoc,
   updateDoc,
@@ -579,9 +580,14 @@ function calculateDmCost() {
     let cost = 0;
 
     if (ingredient) {
-      const costPerUnit = Number(ingredient.costPerUnit || 0);
+      const ingredient = ingredients.find(
+  (item) => item.id === ingredientId
+);
 
-      cost = qty * costPerUnit;
+const costPerKg = Number(ingredient.costPerUnit || 0);
+const costPerGram = costPerKg / 1000;
+
+cost = qty * costPerGram;
     }
 
     const costElement = row.querySelector(".ingredient-cost");
@@ -666,25 +672,27 @@ async function saveRecipe(editId = null) {
 
     if (!ingredient) return;
 
-    const costPerUnit = Number(ingredient.costPerUnit || 0);
+    const costPerKg = Number(ingredient.costPerUnit || 0);
 
-    const cost = qty * costPerUnit;
+const costPerGram = costPerKg / 1000;
 
-    items.push({
-      ingredientId,
+const cost = qty * costPerGram;
 
-      ingredientCode: ingredient.code || "",
+items.push({
+  ingredientId,
 
-      ingredientName: ingredient.name || "",
+  ingredientCode: ingredient.code || "",
 
-      qty,
+  ingredientName: ingredient.name || "",
 
-      costPerUnit,
+  qty,
 
-      costUnit: ingredient.costUnit || "",
+  costPerUnit: costPerKg,
 
-      cost,
-    });
+  costUnit: ingredient.costUnit || "",
+
+  cost,
+});
   });
 
   if (items.length === 0) {
