@@ -5,11 +5,10 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  getDocs
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 import { db } from "./firebase-config.js";
-
 
 // ===============================
 // FIRESTORE COLLECTION
@@ -17,9 +16,7 @@ import { db } from "./firebase-config.js";
 
 const recipeCol = collection(db, "recipes");
 
-const ingredientCol =
-  collection(db, "ingredients");
-
+const ingredientCol = collection(db, "ingredients");
 
 // ===============================
 // DATA
@@ -29,107 +26,68 @@ let recipes = [];
 
 let ingredients = [];
 
-
 // ===============================
 // LOAD INGREDIENTS
 // ===============================
 
 async function loadIngredients() {
-
   try {
-
-    const snapshot =
-      await getDocs(ingredientCol);
+    const snapshot = await getDocs(ingredientCol);
 
     ingredients = [];
 
     snapshot.forEach((docSnap) => {
-
       ingredients.push({
-
         id: docSnap.id,
 
-        ...docSnap.data()
-
+        ...docSnap.data(),
       });
-
     });
-
   } catch (error) {
-
-    console.error(
-      "โหลดวัตถุดิบไม่ได้:",
-      error
-    );
-
+    console.error("โหลดวัตถุดิบไม่ได้:", error);
   }
-
 }
-
 
 // ===============================
 // LISTEN RECIPES REALTIME
 // ===============================
 
 export function listenRecipes() {
-
   onSnapshot(
-
     recipeCol,
 
     (snapshot) => {
-
       recipes = [];
 
       snapshot.forEach((docSnap) => {
-
         recipes.push({
-
           id: docSnap.id,
 
-          ...docSnap.data()
-
+          ...docSnap.data(),
         });
-
       });
-
 
       renderRecipes();
 
       updateRecipeSummary();
-
     },
 
     (error) => {
-
-      console.error(
-        "โหลดสูตรไม่ได้:",
-        error
-      );
-
-    }
-
+      console.error("โหลดสูตรไม่ได้:", error);
+    },
   );
-
 }
-
 
 // ===============================
 // RENDER RECIPES
 // ===============================
 
 function renderRecipes() {
-
-  const tbody =
-    document.getElementById(
-      "recipeTableBody"
-    );
+  const tbody = document.getElementById("recipeTableBody");
 
   if (!tbody) return;
 
-
   if (recipes.length === 0) {
-
     tbody.innerHTML = `
 
       <tr>
@@ -147,13 +105,10 @@ function renderRecipes() {
     `;
 
     return;
-
   }
-
 
   tbody.innerHTML = recipes
     .map((recipe) => {
-
       return `
 
         <tr>
@@ -208,123 +163,72 @@ function renderRecipes() {
         </tr>
 
       `;
-
     })
     .join("");
-
 }
-
 
 // ===============================
 // SUMMARY
 // ===============================
 
 function updateRecipeSummary() {
+  const count = document.getElementById("recipeCount");
 
-  const count =
-    document.getElementById(
-      "recipeCount"
-    );
+  const count50 = document.getElementById("recipe50Count");
 
-  const count50 =
-    document.getElementById(
-      "recipe50Count"
-    );
-
-  const count500 =
-    document.getElementById(
-      "recipe500Count"
-    );
-
+  const count500 = document.getElementById("recipe500Count");
 
   if (count) {
-
-    count.textContent =
-      recipes.length;
-
+    count.textContent = recipes.length;
   }
-
 
   if (count50) {
-
-    count50.textContent =
-      recipes.filter(
-        item => item.packageSize === "50g"
-      ).length;
-
+    count50.textContent = recipes.filter(
+      (item) => item.packageSize === "50g",
+    ).length;
   }
-
 
   if (count500) {
-
-    count500.textContent =
-      recipes.filter(
-        item => item.packageSize === "500g"
-      ).length;
-
+    count500.textContent = recipes.filter(
+      (item) => item.packageSize === "500g",
+    ).length;
   }
-
 }
-
 
 // ===============================
 // ADD BUTTON
 // ===============================
 
-document.addEventListener(
-  "click",
-  async (event) => {
+document.addEventListener("click", async (event) => {
+  if (event.target && event.target.id === "addRecipeBtn") {
+    await loadIngredients();
 
-    if (
-      event.target &&
-      event.target.id === "addRecipeBtn"
-    ) {
-
-      await loadIngredients();
-
-      openRecipeForm();
-
-    }
-
+    openRecipeForm();
   }
-);
-
+});
 
 // ===============================
 // OPEN FORM
 // ===============================
 
-function openRecipeForm(
-  editData = null
-) {
-
-  const ingredientOptions =
-    ingredients
-      .map((item) => {
-
-        return `
+function openRecipeForm(editData = null) {
+  const ingredientOptions = ingredients
+    .map((item) => {
+      return `
 
           <option value="${item.id}">
 
-            ${escapeHtml(
-              item.name ||
-              item.code ||
-              item.id
-            )}
+            ${escapeHtml(item.name || item.code || item.id)}
 
           </option>
 
         `;
+    })
+    .join("");
 
-      })
-      .join("");
-
-
-  const modal =
-    document.createElement("div");
+  const modal = document.createElement("div");
 
   modal.className = "modal";
-
 
   modal.innerHTML = `
 
@@ -334,11 +238,7 @@ function openRecipeForm(
 
         <h3>
 
-          ${
-            editData
-              ? "แก้ไขสูตร"
-              : "เพิ่มสูตรเครื่องแกง"
-          }
+          ${editData ? "แก้ไขสูตร" : "เพิ่มสูตรเครื่องแกง"}
 
         </h3>
 
@@ -364,9 +264,7 @@ function openRecipeForm(
             id="recipeCode"
             required
             placeholder="RC001"
-            value="${
-              editData?.recipeCode || ""
-            }">
+            value="${editData?.recipeCode || ""}">
 
         </label>
 
@@ -379,9 +277,7 @@ function openRecipeForm(
             id="recipeName"
             required
             placeholder="เครื่องแกงกะหรี่"
-            value="${
-              editData?.recipeName || ""
-            }">
+            value="${editData?.recipeName || ""}">
 
         </label>
 
@@ -394,11 +290,7 @@ function openRecipeForm(
 
             <option
               value="50g"
-              ${
-                editData?.packageSize === "50g"
-                  ? "selected"
-                  : ""
-              }>
+              ${editData?.packageSize === "50g" ? "selected" : ""}>
 
               50g
 
@@ -407,11 +299,7 @@ function openRecipeForm(
 
             <option
               value="500g"
-              ${
-                editData?.packageSize === "500g"
-                  ? "selected"
-                  : ""
-              }>
+              ${editData?.packageSize === "500g" ? "selected" : ""}>
 
               500g
 
@@ -431,9 +319,7 @@ function openRecipeForm(
             type="number"
             min="1"
             step="1"
-            value="${
-              editData?.productionQty || 100
-            }"
+            value="${editData?.productionQty || 100}"
             required>
 
         </label>
@@ -526,142 +412,77 @@ function openRecipeForm(
 
   `;
 
-
   document.body.appendChild(modal);
-
 
   // CLOSE
 
   document
-    .getElementById(
-      "closeRecipeModal"
-    )
-    .addEventListener(
-      "click",
-      () => modal.remove()
-    );
-
+    .getElementById("closeRecipeModal")
+    .addEventListener("click", () => modal.remove());
 
   document
-    .getElementById(
-      "cancelRecipeBtn"
-    )
-    .addEventListener(
-      "click",
-      () => modal.remove()
-    );
-
+    .getElementById("cancelRecipeBtn")
+    .addEventListener("click", () => modal.remove());
 
   // ADD INGREDIENT
 
   document
-    .getElementById(
-      "addIngredientRow"
-    )
-    .addEventListener(
-      "click",
-      () => addIngredientRow()
-    );
-
+    .getElementById("addIngredientRow")
+    .addEventListener("click", () => addIngredientRow());
 
   // SAVE
 
   document
     .getElementById("recipeForm")
-    .addEventListener(
-      "submit",
-      async (event) => {
+    .addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-        event.preventDefault();
-
-        await saveRecipe(
-          editData?.id || null
-        );
-
-      }
-    );
-
+      await saveRecipe(editData?.id || null);
+    });
 
   // EXISTING ITEMS
 
-  if (
-    editData &&
-    Array.isArray(editData.items) &&
-    editData.items.length > 0
-  ) {
-
-    editData.items.forEach(
-      (item) => {
-
-        addIngredientRow(item);
-
-      }
-    );
-
+  if (editData && Array.isArray(editData.items) && editData.items.length > 0) {
+    editData.items.forEach((item) => {
+      addIngredientRow(item);
+    });
   } else {
-
     addIngredientRow();
-
   }
 
-
   calculateDmCost();
-
 }
-
 
 // ===============================
 // ADD INGREDIENT ROW
 // ===============================
 
-function addIngredientRow(
-  data = {}
-) {
-
-  const container =
-    document.getElementById(
-      "recipeItems"
-    );
+function addIngredientRow(data = {}) {
+  const container = document.getElementById("recipeItems");
 
   if (!container) return;
 
+  const row = document.createElement("div");
 
-  const row =
-    document.createElement("div");
+  row.className = "recipe-row";
 
-  row.className =
-    "recipe-row";
+  const options = ingredients
+    .map((item) => {
+      const selected = item.id === data.ingredientId ? "selected" : "";
 
-
-  const options =
-    ingredients
-      .map((item) => {
-
-        const selected =
-          item.id === data.ingredientId
-            ? "selected"
-            : "";
-
-
-        return `
+      return `
 
           <option
             value="${item.id}"
             ${selected}>
 
-            ${escapeHtml(
-              item.name ||
-              item.code ||
-              item.id
-            )}
+            ${escapeHtml(item.name || item.code || item.id)}
 
           </option>
 
         `;
-
-      })
-      .join("");
-
+    })
+    .join("");
 
   row.innerHTML = `
 
@@ -704,348 +525,167 @@ function addIngredientRow(
 
   `;
 
-
   container.appendChild(row);
-
 
   // REMOVE
 
-  row
-    .querySelector(".remove-row")
-    .addEventListener(
-      "click",
-      () => {
+  row.querySelector(".remove-row").addEventListener("click", () => {
+    row.remove();
 
-        row.remove();
-
-        calculateDmCost();
-
-      }
-    );
-
+    calculateDmCost();
+  });
 
   // CHANGE
 
   row
-    .querySelector(
-      ".ingredient-select"
-    )
-    .addEventListener(
-      "change",
-      calculateDmCost
-    );
-
+    .querySelector(".ingredient-select")
+    .addEventListener("change", calculateDmCost);
 
   row
-    .querySelector(
-      ".ingredient-qty"
-    )
-    .addEventListener(
-      "input",
-      calculateDmCost
-    );
-
+    .querySelector(".ingredient-qty")
+    .addEventListener("input", calculateDmCost);
 
   calculateDmCost();
-
 }
-
 
 // ===============================
 // CALCULATE DM
 // ===============================
 
 function calculateDmCost() {
-
-  const rows =
-    document.querySelectorAll(
-      ".recipe-row"
-    );
-
+  const rows = document.querySelectorAll(".recipe-row");
 
   let total = 0;
 
-
   rows.forEach((row) => {
+    const ingredientId = row.querySelector(".ingredient-select").value;
 
-    const ingredientId =
-      row.querySelector(
-        ".ingredient-select"
-      ).value;
+    const qty = Number(row.querySelector(".ingredient-qty").value);
 
-
-    const qty =
-      Number(
-        row.querySelector(
-          ".ingredient-qty"
-        ).value
-      );
-
-
-    const ingredient =
-      ingredients.find(
-        (item) =>
-          item.id === ingredientId
-      );
-
+    const ingredient = ingredients.find((item) => item.id === ingredientId);
 
     let cost = 0;
 
-
     if (ingredient) {
+      const costPerUnit = Number(ingredient.costPerUnit || 0);
 
-      const costPerUnit =
-        Number(
-          ingredient.costPerUnit || 0
-        );
-
-
-      cost =
-        qty * costPerUnit;
-
+      cost = qty * costPerUnit;
     }
 
-
-    const costElement =
-      row.querySelector(
-        ".ingredient-cost"
-      );
-
+    const costElement = row.querySelector(".ingredient-cost");
 
     if (costElement) {
-
-      costElement.textContent =
-        `${cost.toFixed(2)} บาท`;
-
+      costElement.textContent = `${cost.toFixed(2)} บาท`;
     }
 
-
     total += cost;
-
   });
 
+  const productionQty = Number(
+    document.getElementById("productionQty")?.value || 0,
+  );
 
-  const productionQty =
-    Number(
-      document.getElementById(
-        "productionQty"
-      )?.value || 0
-    );
+  const perUnit = productionQty > 0 ? total / productionQty : 0;
 
+  const totalElement = document.getElementById("totalDmCost");
 
-  const perUnit =
-    productionQty > 0
-      ? total / productionQty
-      : 0;
-
-
-  const totalElement =
-    document.getElementById(
-      "totalDmCost"
-    );
-
-
-  const perUnitElement =
-    document.getElementById(
-      "dmCostPerUnit"
-    );
-
+  const perUnitElement = document.getElementById("dmCostPerUnit");
 
   if (totalElement) {
-
-    totalElement.textContent =
-      `${total.toFixed(2)} บาท`;
-
+    totalElement.textContent = `${total.toFixed(2)} บาท`;
   }
-
 
   if (perUnitElement) {
-
-    perUnitElement.textContent =
-      `${perUnit.toFixed(2)} บาท`;
-
+    perUnitElement.textContent = `${perUnit.toFixed(2)} บาท`;
   }
 
-
   return {
-
     total,
 
-    perUnit
-
+    perUnit,
   };
-
 }
-
 
 // ===============================
 // SAVE RECIPE
 // ===============================
 
-async function saveRecipe(
-  editId = null
-) {
+async function saveRecipe(editId = null) {
+  const recipeCode = document.getElementById("recipeCode").value.trim();
 
-  const recipeCode =
-    document.getElementById(
-      "recipeCode"
-    ).value.trim();
+  const recipeName = document.getElementById("recipeName").value.trim();
 
+  const packageSize = document.getElementById("packageSize").value;
 
-  const recipeName =
-    document.getElementById(
-      "recipeName"
-    ).value.trim();
-
-
-  const packageSize =
-    document.getElementById(
-      "packageSize"
-    ).value;
-
-
-  const productionQty =
-    Number(
-      document.getElementById(
-        "productionQty"
-      ).value
-    );
-
+  const productionQty = Number(document.getElementById("productionQty").value);
 
   if (!recipeCode) {
-
     alert("กรุณากรอกรหัสสูตร");
 
     return;
-
   }
 
-
   if (!recipeName) {
-
     alert("กรุณากรอกชื่อสูตร");
 
     return;
-
   }
 
-
-  if (
-    !productionQty ||
-    productionQty <= 0
-  ) {
-
+  if (!productionQty || productionQty <= 0) {
     alert("กรุณาระบุจำนวนผลิต");
 
     return;
-
   }
 
-
-  const rows =
-    document.querySelectorAll(
-      ".recipe-row"
-    );
-
+  const rows = document.querySelectorAll(".recipe-row");
 
   const items = [];
 
-
   rows.forEach((row) => {
+    const ingredientId = row.querySelector(".ingredient-select").value;
 
-    const ingredientId =
-      row.querySelector(
-        ".ingredient-select"
-      ).value;
+    const qty = Number(row.querySelector(".ingredient-qty").value);
 
-
-    const qty =
-      Number(
-        row.querySelector(
-          ".ingredient-qty"
-        ).value
-      );
-
-
-    if (
-      !ingredientId ||
-      qty <= 0
-    ) {
-
+    if (!ingredientId || qty <= 0) {
       return;
-
     }
 
-
-    const ingredient =
-      ingredients.find(
-        (item) =>
-          item.id === ingredientId
-      );
-
+    const ingredient = ingredients.find((item) => item.id === ingredientId);
 
     if (!ingredient) return;
 
+    const costPerUnit = Number(ingredient.costPerUnit || 0);
 
-    const costPerUnit =
-      Number(
-        ingredient.costPerUnit || 0
-      );
-
-
-    const cost =
-      qty * costPerUnit;
-
+    const cost = qty * costPerUnit;
 
     items.push({
-
       ingredientId,
 
-      ingredientCode:
-        ingredient.code || "",
+      ingredientCode: ingredient.code || "",
 
-      ingredientName:
-        ingredient.name || "",
+      ingredientName: ingredient.name || "",
 
       qty,
 
       costPerUnit,
 
-      costUnit:
-        ingredient.costUnit || "",
+      costUnit: ingredient.costUnit || "",
 
-      cost
-
+      cost,
     });
-
   });
 
-
   if (items.length === 0) {
-
-    alert(
-      "กรุณาเพิ่มวัตถุดิบอย่างน้อย 1 รายการ"
-    );
+    alert("กรุณาเพิ่มวัตถุดิบอย่างน้อย 1 รายการ");
 
     return;
-
   }
 
+  const dmCost = items.reduce((sum, item) => sum + item.cost, 0);
 
-  const dmCost =
-    items.reduce(
-      (sum, item) =>
-        sum + item.cost,
-      0
-    );
-
-
-  const dmCostPerUnit =
-    dmCost / productionQty;
-
+  const dmCostPerUnit = dmCost / productionQty;
 
   const recipeData = {
-
     recipeCode,
 
     recipeName,
@@ -1060,151 +700,70 @@ async function saveRecipe(
 
     dmCostPerUnit,
 
-    updatedAt:
-      new Date().toISOString()
-
+    updatedAt: new Date().toISOString(),
   };
 
-
   try {
-
     if (editId) {
-
       await updateDoc(
+        doc(db, "recipes", editId),
 
-        doc(
-          db,
-          "recipes",
-          editId
-        ),
-
-        recipeData
-
+        recipeData,
       );
-
     } else {
+      recipeData.createdAt = new Date().toISOString();
 
-      recipeData.createdAt =
-        new Date().toISOString();
-
-
-      await addDoc(
-        recipeCol,
-        recipeData
-      );
-
+      await addDoc(recipeCol, recipeData);
     }
 
+    alert("บันทึกสูตรเรียบร้อยแล้ว");
 
-    alert(
-      "บันทึกสูตรเรียบร้อยแล้ว"
-    );
-
-
-    document
-      .querySelector(
-        ".modal"
-      )
-      ?.remove();
-
-
+    document.querySelector(".modal")?.remove();
   } catch (error) {
+    console.error("บันทึกสูตรไม่ได้:", error);
 
-    console.error(
-      "บันทึกสูตรไม่ได้:",
-      error
-    );
-
-
-    alert(
-      "บันทึกสูตรไม่ได้\n" +
-      error.message
-    );
-
+    alert("บันทึกสูตรไม่ได้\n" + error.message);
   }
-
 }
-
 
 // ===============================
 // EDIT
 // ===============================
 
-window.editRecipe =
-  async function (id) {
+window.editRecipe = async function (id) {
+  const recipe = recipes.find((item) => item.id === id);
 
-    const recipe =
-      recipes.find(
-        (item) =>
-          item.id === id
-      );
+  if (!recipe) return;
 
+  await loadIngredients();
 
-    if (!recipe) return;
-
-
-    await loadIngredients();
-
-    openRecipeForm(recipe);
-
-  };
-
+  openRecipeForm(recipe);
+};
 
 // ===============================
 // DELETE
 // ===============================
 
-window.removeRecipe =
-  async function (id) {
+window.removeRecipe = async function (id) {
+  const confirmDelete = confirm("ต้องการลบสูตรนี้หรือไม่?");
 
-    const confirmDelete =
-      confirm(
-        "ต้องการลบสูตรนี้หรือไม่?"
-      );
+  if (!confirmDelete) return;
 
+  try {
+    await deleteDoc(doc(db, "recipes", id));
+  } catch (error) {
+    console.error("ลบสูตรไม่ได้:", error);
 
-    if (!confirmDelete) return;
-
-
-    try {
-
-      await deleteDoc(
-
-        doc(
-          db,
-          "recipes",
-          id
-        )
-
-      );
-
-
-    } catch (error) {
-
-      console.error(
-        "ลบสูตรไม่ได้:",
-        error
-      );
-
-
-      alert(
-        "ลบสูตรไม่ได้\n" +
-        error.message
-      );
-
-    }
-
-  };
-
+    alert("ลบสูตรไม่ได้\n" + error.message);
+  }
+};
 
 // ===============================
 // HTML ESCAPE
 // ===============================
 
 function escapeHtml(value) {
-
   return String(value)
-
     .replaceAll("&", "&amp;")
 
     .replaceAll("<", "&lt;")
@@ -1213,31 +772,15 @@ function escapeHtml(value) {
 
     .replaceAll('"', "&quot;")
 
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
-
+    .replaceAll("'", "&#039;");
 }
-
 
 // ===============================
 // PRODUCTION QTY CHANGE
 // ===============================
 
-document.addEventListener(
-  "input",
-  (event) => {
-
-    if (
-      event.target &&
-      event.target.id ===
-      "productionQty"
-    ) {
-
-      calculateDmCost();
-
-    }
-
+document.addEventListener("input", (event) => {
+  if (event.target && event.target.id === "productionQty") {
+    calculateDmCost();
   }
-);
+});
