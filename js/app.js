@@ -1,5 +1,3 @@
-import { listenRecipes } from "./recipes.js";
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
 import {
@@ -17,24 +15,43 @@ import {
 
 import { firebaseConfig } from "./firebase-config.js";
 
+// ======================================================
+// FIREBASE
+// ======================================================
+
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
+// Collections
+
 const ingredientCol = collection(db, "ingredients");
+
 const laborCol = collection(db, "labor_rates");
+
 const overheadCol = collection(db, "overhead");
 
+const employeeCol = collection(db, "employees");
+
+const stockTransactionCol = collection(db, "stock_transactions");
+
+// ======================================================
+// VARIABLES
+// ======================================================
+
 let ingredients = [];
-let editingId = null;
+
+let employees = [];
+
+let editingIngredientId = null;
+
+let editingEmployeeId = null;
+
+// ======================================================
+// HELPER
+// ======================================================
 
 const $ = (id) => document.getElementById(id);
-
-function showStatus(message) {
-  const el = $("status");
-  el.textContent = message;
-  el.style.display = "block";
-  setTimeout(() => (el.style.display = "none"), 2200);
-}
 
 function money(value) {
   return Number(value || 0).toLocaleString("th-TH", {
@@ -43,45 +60,91 @@ function money(value) {
   });
 }
 
-// ---------------- Navigation ----------------
-document.querySelectorAll(".nav-btn").forEach(btn => {
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function showStatus(message) {
+  const el = $("status");
+
+  el.textContent = message;
+
+  el.style.display = "block";
+
+  setTimeout(() => {
+    el.style.display = "none";
+  }, 2200);
+}
+
+// ======================================================
+// NAVIGATION
+// ======================================================
+
+document.querySelectorAll(".nav-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
+    document
+      .querySelectorAll(".nav-btn")
+      .forEach((x) => x.classList.remove("active"));
 
-    document.querySelectorAll(".nav-btn")
-      .forEach(x => x.classList.remove("active"));
-
-    document.querySelectorAll(".section")
-      .forEach(x => x.classList.remove("active"));
+    document
+      .querySelectorAll(".section")
+      .forEach((x) => x.classList.remove("active"));
 
     btn.classList.add("active");
 
-    $(btn.dataset.section).classList.add("active");
+    const section = $(btn.dataset.section);
 
-    // เลื่อนหน้าเว็บกลับไปด้านบนทุกครั้งที่เปลี่ยนเมนู
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-
+    if (section) {
+      section.classList.add("active");
+    }
   });
 });
 
-// ---------------- Realtime Ingredients ----------------
-onSnapshot(ingredientCol, (snapshot) => {
-  ingredients = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+// ======================================================
+// INGREDIENTS REALTIME
+// ======================================================
 
-  renderIngredients();
-  renderStock();
+onSnapshot(
+  ingredientCol,
 
-}, (error) => {
+  (snapshot) => {
+    ingredients = snapshot.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+
+    renderIngredients();
+
+    renderStock();
+
+    loadStockIngredientOptions();
+  },
+
+  (error) => {
     console.error(error);
-    showStatus("อ่านข้อมูลไม่ได้ ตรวจสอบ Firebase Rules/Config");
+
+    showStatus("อ่านข้อมูลวัตถุดิบไม่ได้");
   },
 );
 
+// ======================================================
+// RENDER INGREDIENTS
+// ======================================================
+
 function renderIngredients() {
-  const keyword = $("ingredientSearch").value.trim().toLowerCase();
+  const table = $("ingredientTable");
+
+  if (!table) return;
+
+  const keyword = $("ingredientSearch")?.value.trim().toLowerCase() || "";
+
   const list = ingredients
+
     .filter(
       (x) =>
         String(x.name || "")
@@ -91,136 +154,235 @@ function renderIngredients() {
           .toLowerCase()
           .includes(keyword),
     )
+
     .sort((a, b) => String(a.code || "").localeCompare(String(b.code || "")));
 
-  $("ingredientTable").innerHTML = list
+  table.innerHTML = list
     .map(
       (item) => `
-    <tr>
-      <td>${escapeHtml(item.code)}</td>
-      <td>${escapeHtml(item.name)}</td>
-      <td>${item.category === "PACKAGING" ? "บรรจุภัณฑ์" : "DM"}</td>
-      <td>${money(item.purchaseQty)} ${escapeHtml(item.purchaseUnit)}</td>
-      <td>฿${money(item.purchasePrice)}</td>
-      <td>฿${money(item.costPerUnit)}</td>
-      <td>${escapeHtml(item.costUnit || "")}</td>
-      <td class="actions">
-        <button class="secondary" data-edit="${item.id}">แก้ไข</button>
-        <button class="danger" data-delete="${item.id}">ลบ</button>
-      </td>
-    </tr>
-  `,
+
+      <tr>
+
+        <td>
+          ${escapeHtml(item.code)}
+        </td>
+
+        <td>
+          ${escapeHtml(item.name)}
+        </td>
+
+        <td>
+          ${item.category === "PACKAGING" ? "บรรจุภัณฑ์" : "DM"}
+        </td>
+
+        <td>
+          ${money(item.purchaseQty)}
+          ${escapeHtml(item.purchaseUnit)}
+        </td>
+
+        <td>
+          ฿${money(item.purchasePrice)}
+        </td>
+
+        <td>
+          ฿${money(item.costPerUnit)}
+        </td>
+
+        <td>
+          ${escapeHtml(item.costUnit || "")}
+        </td>
+
+        <td>
+          ${money(item.stockQty || 0)}
+        </td>
+
+        <td class="actions">
+
+          <button
+            class="secondary"
+            data-edit-ingredient="${item.id}"
+          >
+            แก้ไข
+          </button>
+
+          <button
+            class="danger"
+            data-delete-ingredient="${item.id}"
+          >
+            ลบ
+          </button>
+
+        </td>
+
+      </tr>
+
+    `,
     )
     .join("");
 
   $("ingredientCount").textContent = ingredients.length;
+
   $("rawCount").textContent = ingredients.filter(
     (x) => x.category === "DM",
   ).length;
+
   $("packCount").textContent = ingredients.filter(
     (x) => x.category === "PACKAGING",
   ).length;
 
-  document
-    .querySelectorAll("[data-edit]")
-    .forEach((btn) =>
-      btn.addEventListener("click", () => openEdit(btn.dataset.edit)),
+  document.querySelectorAll("[data-edit-ingredient]").forEach((btn) => {
+    btn.addEventListener("click", () =>
+      openIngredientEdit(btn.dataset.editIngredient),
     );
-  document
-    .querySelectorAll("[data-delete]")
-    .forEach((btn) =>
-      btn.addEventListener("click", () => removeIngredient(btn.dataset.delete)),
+  });
+
+  document.querySelectorAll("[data-delete-ingredient]").forEach((btn) => {
+    btn.addEventListener("click", () =>
+      removeIngredient(btn.dataset.deleteIngredient),
     );
+  });
 }
 
-$("ingredientSearch").addEventListener("input", renderIngredients);
+// Search
 
-// ---------------- Modal ----------------
-function resetForm() {
+$("ingredientSearch")?.addEventListener("input", renderIngredients);
+
+// ======================================================
+// INGREDIENT MODAL
+// ======================================================
+
+function resetIngredientForm() {
   $("ingredientForm").reset();
+
   $("ingredientId").value = "";
-  editingId = null;
+
+  editingIngredientId = null;
+
   $("modalTitle").textContent = "เพิ่มวัตถุดิบ";
 }
 
-function openAdd() {
-  resetForm();
+function openIngredientAdd() {
+  resetIngredientForm();
+
   $("ingredientModal").classList.remove("hidden");
 }
 
-function openEdit(id) {
+function openIngredientEdit(id) {
   const item = ingredients.find((x) => x.id === id);
+
   if (!item) return;
 
-  editingId = id;
+  editingIngredientId = id;
+
   $("ingredientId").value = id;
+
   $("modalTitle").textContent = "แก้ไขวัตถุดิบ";
+
   $("code").value = item.code || "";
+
   $("name").value = item.name || "";
+
   $("category").value = item.category || "DM";
+
   $("purchaseQty").value = item.purchaseQty ?? "";
+
   $("purchaseUnit").value = item.purchaseUnit || "";
+
   $("purchasePrice").value = item.purchasePrice ?? "";
+
   $("costPerUnit").value = item.costPerUnit ?? "";
+
   $("costUnit").value = item.costUnit || "";
+
   $("ingredientModal").classList.remove("hidden");
 }
 
-$("addIngredientBtn").addEventListener("click", openAdd);
+$("addIngredientBtn").addEventListener("click", openIngredientAdd);
+
 $("closeModal").addEventListener("click", () =>
   $("ingredientModal").classList.add("hidden"),
 );
+
 $("cancelBtn").addEventListener("click", () =>
   $("ingredientModal").classList.add("hidden"),
 );
+
+// ======================================================
+// SAVE INGREDIENT
+// ======================================================
 
 $("ingredientForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const data = {
     code: $("code").value.trim(),
+
     name: $("name").value.trim(),
+
     category: $("category").value,
+
     purchaseQty: Number($("purchaseQty").value),
+
     purchaseUnit: $("purchaseUnit").value.trim(),
+
     purchasePrice: Number($("purchasePrice").value),
+
     costPerUnit: Number($("costPerUnit").value),
+
     costUnit: $("costUnit").value.trim(),
+
     updatedAt: serverTimestamp(),
   };
 
   try {
-    if (editingId) {
-      await updateDoc(doc(db, "ingredients", editingId), data);
+    if (editingIngredientId) {
+      await updateDoc(doc(db, "ingredients", editingIngredientId), data);
+
       showStatus("แก้ไขข้อมูลแล้ว");
     } else {
       await addDoc(ingredientCol, {
         ...data,
+
         stockQty: 0,
+
         createdAt: serverTimestamp(),
       });
+
       showStatus("เพิ่มข้อมูลแล้ว");
     }
+
     $("ingredientModal").classList.add("hidden");
-    resetForm();
+
+    resetIngredientForm();
   } catch (error) {
     console.error(error);
+
     showStatus("บันทึกไม่สำเร็จ");
   }
 });
 
+// ======================================================
+// DELETE INGREDIENT
+// ======================================================
+
 async function removeIngredient(id) {
   if (!confirm("ต้องการลบรายการนี้ใช่หรือไม่?")) return;
+
   try {
     await deleteDoc(doc(db, "ingredients", id));
+
     showStatus("ลบข้อมูลแล้ว");
   } catch (error) {
     console.error(error);
+
     showStatus("ลบไม่สำเร็จ");
   }
 }
 
-// ---------------- Seed initial data ----------------
+// ======================================================
+// SEED DATA
+// ======================================================
+
 $("seedBtn").addEventListener("click", seedData);
 
 async function seedData() {
@@ -228,25 +390,39 @@ async function seedData() {
 
   const batch = writeBatch(db);
 
-  const ingredients = [
+  const ingredientData = [
     ["RM001", "พริกสด", "DM", 10, "กก.", 600, 60, "กก."],
+
     ["RM002", "พริกแห้ง", "DM", 10, "กก.", 1600, 160, "กก."],
+
     ["RM003", "ขมิ้น", "DM", 10, "กก.", 750, 75, "กก."],
+
     ["RM004", "กระเทียม", "DM", 10, "กก.", 500, 50, "กก."],
+
     ["RM005", "เกลือผสมไอโอดีน", "DM", 1, "โหล", 60, 60, "โหล"],
+
     ["RM006", "พริกไทยดำ", "DM", 0.5, "กก.", 179, 358, "กก."],
+
     ["RM007", "ตะไคร้", "DM", 10, "กก.", 650, 65, "กก."],
+
     ["RM008", "หอมแดง", "DM", 10, "กก.", 600, 60, "กก."],
+
     ["RM009", "ข่า", "DM", 10, "กก.", 890, 89, "กก."],
+
     ["RM010", "ใบมะกรูด", "DM", 2, "กก.", 160, 80, "กก."],
+
     ["PK001", "ซอง 50 กรัม ชั้นใน", "PACKAGING", 100, "ใบ", 35, 0.35, "ใบ"],
+
     ["PK002", "ซอง 50 กรัม ชั้นนอก", "PACKAGING", 100, "ใบ", 55, 0.55, "ใบ"],
+
     ["PK003", "ซอง 500 กรัม ชั้นใน", "PACKAGING", 100, "ใบ", 70, 0.7, "ใบ"],
+
     ["PK004", "ซอง 500 กรัม ชั้นนอก", "PACKAGING", 100, "ใบ", 150, 1.5, "ใบ"],
+
     ["PK005", "ค่าสกรีน", "PACKAGING", 1, "ซอง", 2, 2, "ซอง"],
   ];
 
-  ingredients.forEach(
+  ingredientData.forEach(
     ([
       code,
       name,
@@ -258,6 +434,7 @@ async function seedData() {
       costUnit,
     ]) => {
       const ref = doc(ingredientCol);
+
       batch.set(ref, {
         code,
         name,
@@ -267,435 +444,201 @@ async function seedData() {
         purchasePrice,
         costPerUnit,
         costUnit,
+
         stockQty: 0,
+
         createdAt: serverTimestamp(),
+
         updatedAt: serverTimestamp(),
       });
     },
   );
 
-  const labor = [
+  const laborData = [
     ["DL001", "ฝ่ายการเงินและบัญชี", 65],
+
     ["DL002", "ฝ่ายผลิต", 55],
+
     ["DL003", "ฝ่ายจัดซื้อ/จัดเตรียมวัตถุดิบ", 45],
+
     ["DL004", "ฝ่ายบรรจุภัณฑ์", 40],
   ];
-  labor.forEach(([code, name, rate]) => {
+
+  laborData.forEach(([code, name, rate]) => {
     const ref = doc(laborCol);
+
     batch.set(ref, {
       code,
       name,
       rate,
       unit: "บาท/ชั่วโมง",
+
       createdAt: serverTimestamp(),
     });
   });
 
-  const overhead = [
+  const overheadData = [
     ["OH001", "ค่าเช่า", 3500, "บาท/เดือน"],
+
     ["OH002", "ค่าเสื่อมราคาสะสม-เครื่องบด", 750, "บาท/เดือน"],
+
     ["OH003", "ค่าเสื่อมราคาสะสม-เครื่องซีล", 133.33, "บาท/เดือน"],
+
     ["OH004", "ค่าเสื่อมราคาสะสม-เครื่องผสม", 283.33, "บาท/เดือน"],
+
     ["OH005", "ค่าสกรีน", 2, "บาท/ซอง"],
+
     ["OH006", "ค่าน้ำ", 200, "บาท/เดือน"],
+
     ["OH007", "ค่าไฟ", 3000, "บาท/เดือน"],
+
     ["OH008", "ค่าแก๊ส", 480, "บาท/ถัง"],
+
     ["OH009", "ค่าซ่อมบำรุงเครื่องซีล", 500, "บาท/ครั้ง"],
+
     ["OH010", "ค่าใช้จ่ายเบ็ดเตล็ด", 190, "บาท/เดือน"],
   ];
-  overhead.forEach(([code, name, rate, unit]) => {
+
+  overheadData.forEach(([code, name, rate, unit]) => {
     const ref = doc(overheadCol);
-    batch.set(ref, { code, name, rate, unit, createdAt: serverTimestamp() });
+
+    batch.set(ref, {
+      code,
+      name,
+      rate,
+      unit,
+
+      createdAt: serverTimestamp(),
+    });
   });
 
   try {
     await batch.commit();
+
     showStatus("นำเข้าข้อมูลเริ่มต้นแล้ว");
   } catch (error) {
     console.error(error);
+
     showStatus("นำเข้าข้อมูลไม่สำเร็จ");
   }
 }
 
-// ---------------- Realtime Labor / OH ----------------
-onSnapshot(laborCol, (snapshot) => {
-  $("laborTable").innerHTML = snapshot.docs
-    .map((d) => {
-      const x = d.data();
-      return `<tr><td>${escapeHtml(x.code)}</td><td>${escapeHtml(x.name)}</td><td>฿${money(x.rate)}</td></tr>`;
-    })
-    .join("");
-});
+// ======================================================
+// LABOR REALTIME
+// ======================================================
 
-onSnapshot(overheadCol, (snapshot) => {
-  $("overheadTable").innerHTML = snapshot.docs
-    .map((d) => {
-      const x = d.data();
-      return `<tr><td>${escapeHtml(x.code)}</td><td>${escapeHtml(x.name)}</td><td>฿${money(x.rate)}</td><td>${escapeHtml(x.unit)}</td></tr>`;
-    })
-    .join("");
-});
+onSnapshot(
+  laborCol,
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+  (snapshot) => {
+    $("laborTable").innerHTML = snapshot.docs
+      .map((d) => {
+        const x = d.data();
 
-listenRecipes();
+        return `
 
-// =====================================================
-// STOCK MANAGEMENT
-// =====================================================
+            <tr>
 
-const stockTransactionCol = collection(db, "stock_transactions");
+              <td>
+                ${escapeHtml(x.code)}
+              </td>
 
-let stockTransactionType = "RECEIVE";
+              <td>
+                ${escapeHtml(x.name)}
+              </td>
 
-// -------------------------
-// Open Receive Modal
-// -------------------------
+              <td>
+                ฿${money(x.rate)}
+              </td>
 
-$("receiveStockBtn").addEventListener("click", () => {
-  openStockModal("RECEIVE");
-});
+            </tr>
 
-// -------------------------
-// Open Issue Modal
-// -------------------------
-
-$("issueStockBtn").addEventListener("click", () => {
-  openStockModal("ISSUE");
-});
-
-// -------------------------
-// Open Modal
-// -------------------------
-
-function openStockModal(type) {
-
-  stockTransactionType = type;
-
-  $("stockForm").reset();
-
-  $("stockTransactionType").value = type;
-
-  if (type === "RECEIVE") {
-
-    $("stockModalTitle").textContent =
-      "รับเข้าวัตถุดิบ";
-
-  } else {
-
-    $("stockModalTitle").textContent =
-      "จ่ายออกวัตถุดิบ";
-
-  }
-
-  loadStockIngredientOptions();
-
-  $("stockModal").classList.remove("hidden");
-}
-
-// -------------------------
-// Close Modal
-// -------------------------
-
-function closeStockModal() {
-
-  $("stockModal").classList.add("hidden");
-
-  $("stockForm").reset();
-}
-
-$("closeStockModal").addEventListener(
-  "click",
-  closeStockModal
+          `;
+      })
+      .join("");
+  },
 );
 
-$("cancelStockBtn").addEventListener(
-  "click",
-  closeStockModal
-);
+// ======================================================
+// OH REALTIME
+// ======================================================
 
-// -------------------------
-// Ingredient Options
-// -------------------------
+let overheadData = [];
 
-function loadStockIngredientOptions() {
+onSnapshot(
+  overheadCol,
 
-  const select = $("stockIngredient");
+  (snapshot) => {
+    overheadData = snapshot.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
 
-  select.innerHTML = `
-    <option value="">
-      -- เลือกวัตถุดิบ --
-    </option>
-  `;
+    $("overheadTable").innerHTML = overheadData
+      .map(
+        (x) => `
 
-  const dmIngredients = ingredients
-    .filter(item => item.category === "DM")
-    .sort((a, b) =>
-      String(a.code || "").localeCompare(
-        String(b.code || "")
+          <tr>
+
+            <td>
+              ${escapeHtml(x.code)}
+            </td>
+
+            <td>
+              ${escapeHtml(x.name)}
+            </td>
+
+            <td>
+              ฿${money(x.rate)}
+            </td>
+
+            <td>
+              ${escapeHtml(x.unit)}
+            </td>
+
+          </tr>
+
+        `,
       )
-    );
+      .join("");
 
-  dmIngredients.forEach(item => {
-
-    const option = document.createElement("option");
-
-    option.value = item.id;
-
-    option.textContent =
-      `${item.code} - ${item.name} (คงเหลือ ${Number(item.stockQty || 0).toLocaleString("th-TH")} ${item.costUnit || ""})`;
-
-    select.appendChild(option);
-
-  });
-}
-
-// -------------------------
-// Submit Stock Transaction
-// -------------------------
-
-$("stockForm").addEventListener(
-  "submit",
-  async (event) => {
-
-    event.preventDefault();
-
-    const ingredientId =
-      $("stockIngredient").value;
-
-    const qty =
-      Number($("stockQty").value);
-
-    const note =
-      $("stockNote").value.trim();
-
-    if (!ingredientId) {
-
-      showStatus("กรุณาเลือกวัตถุดิบ");
-
-      return;
-    }
-
-    if (!qty || qty <= 0) {
-
-      showStatus("กรุณาระบุจำนวนให้ถูกต้อง");
-
-      return;
-    }
-
-    const ingredient =
-      ingredients.find(
-        item => item.id === ingredientId
-      );
-
-    if (!ingredient) {
-
-      showStatus("ไม่พบวัตถุดิบ");
-
-      return;
-    }
-
-    const currentStock =
-      Number(ingredient.stockQty || 0);
-
-    // -------------------------
-    // Check Issue Stock
-    // -------------------------
-
-    if (
-      stockTransactionType === "ISSUE" &&
-      qty > currentStock
-    ) {
-
-      showStatus(
-        `สต็อกไม่พอ เหลือ ${currentStock} ${ingredient.costUnit || ""}`
-      );
-
-      return;
-    }
-
-    try {
-
-      const ingredientRef =
-        doc(
-          db,
-          "ingredients",
-          ingredientId
-        );
-
-      const transactionRef =
-        doc(stockTransactionCol);
-
-      await runTransaction(
-        db,
-        async (transaction) => {
-
-          const ingredientSnap =
-            await transaction.get(
-              ingredientRef
-            );
-
-          if (!ingredientSnap.exists()) {
-
-            throw new Error(
-              "ไม่พบวัตถุดิบ"
-            );
-          }
-
-          const data =
-            ingredientSnap.data();
-
-          const oldStock =
-            Number(data.stockQty || 0);
-
-          let newStock;
-
-          if (
-            stockTransactionType === "RECEIVE"
-          ) {
-
-            newStock =
-              oldStock + qty;
-
-          } else {
-
-            if (qty > oldStock) {
-
-              throw new Error(
-                `สต็อกไม่พอ เหลือ ${oldStock}`
-              );
-            }
-
-            newStock =
-              oldStock - qty;
-          }
-
-          transaction.update(
-            ingredientRef,
-            {
-              stockQty: newStock,
-              updatedAt: serverTimestamp()
-            }
-          );
-
-          transaction.set(
-            transactionRef,
-            {
-              ingredientId: ingredientId,
-
-              ingredientCode:
-                data.code || "",
-
-              ingredientName:
-                data.name || "",
-
-              type:
-                stockTransactionType,
-
-              qty: qty,
-
-              unit:
-                data.costUnit || "",
-
-              previousStock:
-                oldStock,
-
-              newStock:
-                newStock,
-
-              note: note,
-
-              createdAt:
-                serverTimestamp()
-            }
-          );
-
-        }
-      );
-
-      closeStockModal();
-
-      if (
-        stockTransactionType === "RECEIVE"
-      ) {
-
-        showStatus(
-          "รับเข้าวัตถุดิบเรียบร้อยแล้ว"
-        );
-
-      } else {
-
-        showStatus(
-          "จ่ายออกวัตถุดิบเรียบร้อยแล้ว"
-        );
-      }
-
-    } catch (error) {
-
-      console.error(error);
-
-      showStatus(
-        error.message ||
-        "บันทึกการเคลื่อนไหวไม่สำเร็จ"
-      );
-
-    }
-
-  }
+    renderOHAllocation();
+  },
 );
 
-// =====================================================
-// STOCK TABLE
-// =====================================================
+// ======================================================
+// STOCK
+// ======================================================
 
 function renderStock() {
+  const table = $("stockTableBody");
 
-  const keyword =
-    $("stockSearch").value
-      .trim()
-      .toLowerCase();
+  if (!table) return;
 
-  const list =
-    ingredients
-      .filter(item =>
-        item.category === "DM"
-      )
-      .filter(item =>
-        String(item.name || "")
+  const keyword = $("stockSearch")?.value.trim().toLowerCase() || "";
+
+  const list = ingredients
+
+    .filter((x) => x.category === "DM")
+
+    .filter(
+      (x) =>
+        String(x.name || "")
           .toLowerCase()
           .includes(keyword) ||
-
-        String(item.code || "")
+        String(x.code || "")
           .toLowerCase()
-          .includes(keyword)
-      )
-      .sort((a, b) =>
-        String(a.code || "")
-          .localeCompare(
-            String(b.code || "")
-          )
-      );
+          .includes(keyword),
+    );
 
-  $("stockTableBody").innerHTML =
-    list.map(item => {
+  table.innerHTML = list
+    .map((item) => {
+      const stock = Number(item.stockQty || 0);
 
-      const stock =
-        Number(item.stockQty || 0);
-
-      const cost =
-        Number(item.costPerUnit || 0);
-
-      const stockValue =
-        stock * cost;
+      const value = stock * Number(item.costPerUnit || 0);
 
       return `
+
         <tr>
 
           <td>
@@ -711,172 +654,772 @@ function renderStock() {
           </td>
 
           <td>
-            ฿${money(cost)}
+            ฿${money(item.costPerUnit)}
           </td>
 
           <td>
-            <strong>
-              ${stock.toLocaleString("th-TH")}
-            </strong>
-            ${escapeHtml(item.costUnit || "")}
+            ${money(stock)}
           </td>
 
           <td>
-            ฿${money(stockValue)}
+            ฿${money(value)}
           </td>
 
         </tr>
+
       `;
+    })
+    .join("");
 
-    }).join("");
+  const dm = ingredients.filter((x) => x.category === "DM");
 
-  $("stockItemCount").textContent =
-    list.length;
+  $("stockItemCount").textContent = dm.length;
 
-  $("stockAvailableCount").textContent =
-    list.filter(
-      item => Number(item.stockQty || 0) > 0
-    ).length;
+  $("stockAvailableCount").textContent = dm.filter(
+    (x) => Number(x.stockQty || 0) > 0,
+  ).length;
 
-  $("stockEmptyCount").textContent =
-    list.filter(
-      item => Number(item.stockQty || 0) <= 0
-    ).length;
+  $("stockEmptyCount").textContent = dm.filter(
+    (x) => Number(x.stockQty || 0) <= 0,
+  ).length;
 }
 
-$("stockSearch").addEventListener(
-  "input",
-  renderStock
+$("stockSearch")?.addEventListener("input", renderStock);
+
+// ======================================================
+// STOCK SELECT
+// ======================================================
+
+function loadStockIngredientOptions() {
+  const select = $("stockIngredient");
+
+  if (!select) return;
+
+  const currentValue = select.value;
+
+  const dm = ingredients.filter((x) => x.category === "DM");
+
+  select.innerHTML = `
+
+    <option value="">
+      -- เลือกวัตถุดิบ --
+    </option>
+
+    ${dm
+      .map(
+        (item) => `
+
+          <option value="${item.id}">
+
+            ${escapeHtml(item.code)}
+            -
+            ${escapeHtml(item.name)}
+
+          </option>
+
+        `,
+      )
+      .join("")}
+
+  `;
+
+  if (dm.some((x) => x.id === currentValue)) {
+    select.value = currentValue;
+  }
+}
+
+// ======================================================
+// STOCK MODAL
+// ======================================================
+
+function openStockModal(type) {
+  $("stockForm").reset();
+
+  $("stockTransactionType").value = type;
+
+  if (type === "IN") {
+    $("stockModalTitle").textContent = "รับเข้าวัตถุดิบ";
+  } else {
+    $("stockModalTitle").textContent = "จ่ายออกวัตถุดิบ";
+  }
+
+  loadStockIngredientOptions();
+
+  $("stockModal").classList.remove("hidden");
+}
+
+$("receiveStockBtn").addEventListener("click", () => openStockModal("IN"));
+
+$("issueStockBtn").addEventListener("click", () => openStockModal("OUT"));
+
+$("closeStockModal").addEventListener("click", () =>
+  $("stockModal").classList.add("hidden"),
 );
 
-// Update stock whenever ingredients change
-const originalRenderIngredients =
-  renderIngredients;
+$("cancelStockBtn").addEventListener("click", () =>
+  $("stockModal").classList.add("hidden"),
+);
 
-// =====================================================
-// STOCK HISTORY
-// =====================================================
+// ======================================================
+// STOCK TRANSACTION
+// ======================================================
 
-onSnapshot(
-  stockTransactionCol,
-  snapshot => {
+$("stockForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    const history =
-      snapshot.docs
-        .map(d => ({
-          id: d.id,
-          ...d.data()
-        }))
-        .sort((a, b) => {
+  const type = $("stockTransactionType").value;
 
-          const aTime =
-            a.createdAt?.seconds || 0;
+  const ingredientId = $("stockIngredient").value;
 
-          const bTime =
-            b.createdAt?.seconds || 0;
+  const qty = Number($("stockQty").value);
 
-          return bTime - aTime;
+  const note = $("stockNote").value.trim();
 
-        });
+  if (!ingredientId) {
+    showStatus("กรุณาเลือกวัตถุดิบ");
 
-    $("stockHistoryBody").innerHTML =
-      history.map(item => {
+    return;
+  }
 
-        let dateText = "-";
+  if (qty <= 0) {
+    showStatus("จำนวนต้องมากกว่า 0");
 
-        if (item.createdAt) {
+    return;
+  }
 
-          const date =
-            item.createdAt.toDate();
+  try {
+    const ingredientRef = doc(db, "ingredients", ingredientId);
 
-          dateText =
-            date.toLocaleString(
-              "th-TH"
-            );
+    await runTransaction(db, async (transaction) => {
+      const ingredientSnap = await transaction.get(ingredientRef);
+
+      if (!ingredientSnap.exists()) {
+        throw new Error("ไม่พบวัตถุดิบ");
+      }
+
+      const data = ingredientSnap.data();
+
+      const currentStock = Number(data.stockQty || 0);
+
+      let newStock;
+
+      if (type === "IN") {
+        newStock = currentStock + qty;
+      } else {
+        if (qty > currentStock) {
+          throw new Error("สต็อกไม่เพียงพอ");
         }
 
-        const typeText =
-          item.type === "RECEIVE"
-            ? "รับเข้า"
-            : "จ่ายออก";
+        newStock = currentStock - qty;
+      }
 
-        return `
-          <tr>
+      transaction.update(ingredientRef, {
+        stockQty: newStock,
 
-            <td>
-              ${dateText}
-            </td>
+        updatedAt: serverTimestamp(),
+      });
 
-            <td>
-              <strong>
-                ${typeText}
-              </strong>
-            </td>
+      const historyRef = doc(stockTransactionCol);
 
-            <td>
-              ${escapeHtml(
-                item.ingredientCode || ""
-              )}
-              -
-              ${escapeHtml(
-                item.ingredientName || ""
-              )}
-            </td>
+      transaction.set(historyRef, {
+        ingredientId,
 
-            <td>
-              ${Number(
-                item.qty || 0
-              ).toLocaleString("th-TH")}
-              ${escapeHtml(
-                item.unit || ""
-              )}
-            </td>
+        ingredientCode: data.code || "",
 
-            <td>
-              ${escapeHtml(
-                item.note || "-"
-              )}
-            </td>
+        ingredientName: data.name || "",
 
-          </tr>
-        `;
+        type,
 
-      }).join("");
+        qty,
 
-  },
-  error => {
+        previousStock: currentStock,
 
+        newStock,
+
+        note,
+
+        createdAt: serverTimestamp(),
+      });
+    });
+
+    $("stockModal").classList.add("hidden");
+
+    showStatus(type === "IN" ? "รับเข้าสต็อกแล้ว" : "จ่ายออกจากสต็อกแล้ว");
+  } catch (error) {
     console.error(error);
 
     showStatus(
-      "อ่านประวัติสต็อกไม่ได้"
+      error.message === "สต็อกไม่เพียงพอ"
+        ? "สต็อกไม่เพียงพอ"
+        : "บันทึกสต็อกไม่สำเร็จ",
     );
-
   }
+});
+
+// ======================================================
+// STOCK HISTORY
+// ======================================================
+
+onSnapshot(
+  stockTransactionCol,
+
+  (snapshot) => {
+    const rows = snapshot.docs
+      .map((d) => ({
+        id: d.id,
+        ...d.data(),
+      }))
+
+      .sort(
+        (a, b) =>
+          Number(b.createdAt?.seconds || 0) - Number(a.createdAt?.seconds || 0),
+      );
+
+    $("stockHistoryBody").innerHTML = rows
+      .map((x) => {
+        const date = x.createdAt?.seconds
+          ? new Date(x.createdAt.seconds * 1000).toLocaleString("th-TH")
+          : "-";
+
+        const typeText = x.type === "IN" ? "รับเข้า" : "จ่ายออก";
+
+        return `
+
+          <tr>
+
+            <td>
+              ${date}
+            </td>
+
+            <td>
+              ${x.type === "IN" ? "🟢 รับเข้า" : "🔴 จ่ายออก"}
+            </td>
+
+            <td>
+              ${escapeHtml(x.ingredientName)}
+            </td>
+
+            <td>
+              ${money(x.qty)}
+            </td>
+
+            <td>
+              ${escapeHtml(x.note || "-")}
+            </td>
+
+          </tr>
+
+        `;
+      })
+      .join("");
+  },
 );
 
-// =====================================================
-// NAVIGATION STOCK
-// =====================================================
+// ======================================================
+// EMPLOYEES
+// ======================================================
 
-document
-  .querySelectorAll(".nav-btn")
-  .forEach(btn => {
+onSnapshot(
+  employeeCol,
 
-    btn.addEventListener(
-      "click",
-      () => {
+  (snapshot) => {
+    employees = snapshot.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
 
-        if (
-          btn.dataset.section === "stock"
-        ) {
+    renderEmployees();
 
-          renderStock();
+    renderOHAllocation();
+  },
+);
 
-          loadStockIngredientOptions();
-        }
+// ======================================================
+// RENDER EMPLOYEES
+// ======================================================
 
-      }
+function renderEmployees() {
+  const table = $("employeeTable");
+
+  if (!table) return;
+
+  const keyword = $("employeeSearch")?.value.trim().toLowerCase() || "";
+
+  const list = employees.filter(
+    (x) =>
+      String(x.code || "")
+        .toLowerCase()
+        .includes(keyword) ||
+      String(x.name || "")
+        .toLowerCase()
+        .includes(keyword) ||
+      String(x.department || "")
+        .toLowerCase()
+        .includes(keyword),
+  );
+
+  table.innerHTML = list
+    .map((x) => {
+      const daily = Number(x.rate || 0) * Number(x.hours || 0);
+
+      return `
+
+        <tr>
+
+          <td>
+            ${escapeHtml(x.code)}
+          </td>
+
+          <td>
+            ${escapeHtml(x.name)}
+          </td>
+
+          <td>
+            ${escapeHtml(x.department)}
+          </td>
+
+          <td>
+            ฿${money(x.rate)}
+          </td>
+
+          <td>
+            ${money(x.hours)}
+          </td>
+
+          <td>
+            ฿${money(daily)}
+          </td>
+
+          <td>
+
+            ${x.active ? "🟢 ทำงานอยู่" : "🔴 ไม่ทำงาน"}
+
+          </td>
+
+          <td class="actions">
+
+            <button
+              class="secondary"
+              data-edit-employee="${x.id}"
+            >
+              แก้ไข
+            </button>
+
+            <button
+              class="danger"
+              data-delete-employee="${x.id}"
+            >
+              ลบ
+            </button>
+
+          </td>
+
+        </tr>
+
+      `;
+    })
+    .join("");
+
+  $("employeeCount").textContent = employees.length;
+
+  const totalHours = employees.reduce(
+    (sum, x) => sum + Number(x.hours || 0),
+    0,
+  );
+
+  const totalWage = employees.reduce(
+    (sum, x) => sum + Number(x.rate || 0) * Number(x.hours || 0),
+    0,
+  );
+
+  $("totalEmployeeHours").textContent = `${money(totalHours)} ชม.`;
+
+  $("totalDailyWage").textContent = `฿${money(totalWage)}`;
+
+  document.querySelectorAll("[data-edit-employee]").forEach((btn) => {
+    btn.addEventListener("click", () =>
+      openEmployeeEdit(btn.dataset.editEmployee),
     );
-
   });
+
+  document.querySelectorAll("[data-delete-employee]").forEach((btn) => {
+    btn.addEventListener("click", () =>
+      deleteEmployee(btn.dataset.deleteEmployee),
+    );
+  });
+}
+
+$("employeeSearch")?.addEventListener("input", renderEmployees);
+
+// ======================================================
+// EMPLOYEE MODAL
+// ======================================================
+
+function openEmployeeAdd() {
+  editingEmployeeId = null;
+
+  $("employeeForm").reset();
+
+  $("employeeHours").value = 8;
+
+  $("employeeActive").checked = true;
+
+  $("employeeModalTitle").textContent = "เพิ่มพนักงาน";
+
+  $("employeeModal").classList.remove("hidden");
+}
+
+function openEmployeeEdit(id) {
+  const employee = employees.find((x) => x.id === id);
+
+  if (!employee) return;
+
+  editingEmployeeId = id;
+
+  $("employeeCode").value = employee.code || "";
+
+  $("employeeName").value = employee.name || "";
+
+  $("employeeDepartment").value = employee.department || "";
+
+  $("employeeRate").value = employee.rate ?? "";
+
+  $("employeeHours").value = employee.hours ?? 8;
+
+  $("employeeActive").checked = employee.active !== false;
+
+  $("employeeModalTitle").textContent = "แก้ไขพนักงาน";
+
+  $("employeeModal").classList.remove("hidden");
+}
+
+$("addEmployeeBtn").addEventListener("click", openEmployeeAdd);
+
+$("closeEmployeeModal").addEventListener("click", () =>
+  $("employeeModal").classList.add("hidden"),
+);
+
+$("cancelEmployeeBtn").addEventListener("click", () =>
+  $("employeeModal").classList.add("hidden"),
+);
+
+// ======================================================
+// SAVE EMPLOYEE
+// ======================================================
+
+$("employeeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = {
+    code: $("employeeCode").value.trim(),
+
+    name: $("employeeName").value.trim(),
+
+    department: $("employeeDepartment").value.trim(),
+
+    rate: Number($("employeeRate").value),
+
+    hours: Number($("employeeHours").value),
+
+    active: $("employeeActive").checked,
+
+    updatedAt: serverTimestamp(),
+  };
+
+  try {
+    if (editingEmployeeId) {
+      await updateDoc(doc(db, "employees", editingEmployeeId), data);
+
+      showStatus("แก้ไขพนักงานแล้ว");
+    } else {
+      await addDoc(employeeCol, {
+        ...data,
+
+        createdAt: serverTimestamp(),
+      });
+
+      showStatus("เพิ่มพนักงานแล้ว");
+    }
+
+    $("employeeModal").classList.add("hidden");
+  } catch (error) {
+    console.error(error);
+
+    showStatus("บันทึกพนักงานไม่สำเร็จ");
+  }
+});
+
+// ======================================================
+// DELETE EMPLOYEE
+// ======================================================
+
+async function deleteEmployee(id) {
+  if (!confirm("ต้องการลบพนักงานคนนี้ใช่หรือไม่?")) return;
+
+  try {
+    await deleteDoc(doc(db, "employees", id));
+
+    showStatus("ลบพนักงานแล้ว");
+  } catch (error) {
+    console.error(error);
+
+    showStatus("ลบพนักงานไม่สำเร็จ");
+  }
+}
+
+// ======================================================
+// SEED EMPLOYEES
+// ======================================================
+
+$("seedEmployeeBtn").addEventListener("click", seedEmployees);
+
+async function seedEmployees() {
+  if (!confirm("นำเข้าข้อมูลพนักงานตัวอย่างหรือไม่?")) return;
+
+  const data = [
+    ["EMP001", "นางสายใจ เรืองกูล", "ฝ่ายผลิต", 55, 8],
+
+    ["EMP002", "นายสมชาย ใจดี", "ฝ่ายจัดซื้อ/จัดเตรียมวัตถุดิบ", 45, 8],
+
+    ["EMP003", "นางสาวมาลี สุขใจ", "ฝ่ายบรรจุภัณฑ์", 40, 8],
+
+    ["EMP004", "นายกิตติพงษ์ แสงทอง", "ฝ่ายการเงินและบัญชี", 65, 8],
+  ];
+
+  const batch = writeBatch(db);
+
+  data.forEach(([code, name, department, rate, hours]) => {
+    const ref = doc(employeeCol);
+
+    batch.set(ref, {
+      code,
+      name,
+      department,
+      rate,
+      hours,
+      active: true,
+
+      createdAt: serverTimestamp(),
+
+      updatedAt: serverTimestamp(),
+    });
+  });
+
+  try {
+    await batch.commit();
+
+    showStatus("นำเข้าข้อมูลพนักงานแล้ว");
+  } catch (error) {
+    console.error(error);
+
+    showStatus("นำเข้าพนักงานไม่สำเร็จ");
+  }
+}
+
+// ======================================================
+// OH ALLOCATION
+// ======================================================
+
+function renderOHAllocation() {
+  const table = $("ohAllocationTable");
+
+  if (!table) return;
+
+  const activeEmployees = employees.filter((x) => x.active !== false);
+
+  const totalHours = activeEmployees.reduce(
+    (sum, x) => sum + Number(x.hours || 0),
+    0,
+  );
+
+  const totalLabor = activeEmployees.reduce(
+    (sum, x) => sum + Number(x.rate || 0) * Number(x.hours || 0),
+    0,
+  );
+
+  const totalOH = overheadData.reduce((sum, x) => sum + Number(x.rate || 0), 0);
+
+  $("ohTotalHours").textContent = `${money(totalHours)} ชม.`;
+
+  $("ohTotalLabor").textContent = `฿${money(totalLabor)}`;
+
+  $("ohTotalCost").textContent = `฿${money(totalOH)}`;
+
+  if (activeEmployees.length === 0) {
+    table.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="6"
+          class="empty"
+        >
+          ยังไม่มีข้อมูลพนักงาน
+        </td>
+
+      </tr>
+
+    `;
+
+    return;
+  }
+
+  const groups = {};
+
+  activeEmployees.forEach((employee) => {
+    const department = employee.department || "ไม่ระบุ";
+
+    if (!groups[department]) {
+      groups[department] = {
+        people: 0,
+
+        hours: 0,
+
+        wage: 0,
+      };
+    }
+
+    groups[department].people += 1;
+
+    groups[department].hours += Number(employee.hours || 0);
+
+    groups[department].wage +=
+      Number(employee.rate || 0) * Number(employee.hours || 0);
+  });
+
+  table.innerHTML = Object.entries(groups)
+    .map(([department, data]) => {
+      const ratio = totalHours > 0 ? data.hours / totalHours : 0;
+
+      return `
+
+            <tr>
+
+              <td>
+                ${escapeHtml(department)}
+              </td>
+
+              <td>
+                ${data.people}
+              </td>
+
+              <td>
+                ${money(data.hours)}
+              </td>
+
+              <td>
+                ฿${money(data.wage)}
+              </td>
+
+              <td>
+                ${(ratio * 100).toFixed(2)}%
+              </td>
+
+              <td>
+                ฿${money(totalOH * ratio)}
+              </td>
+
+            </tr>
+
+          `;
+    })
+    .join("");
+}
+
+// ======================================================
+// RECIPES PLACEHOLDER
+// ======================================================
+
+onSnapshot(
+  collection(db, "recipes"),
+
+  (snapshot) => {
+    const recipes = snapshot.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+
+    $("recipeCount").textContent = recipes.length;
+
+    $("recipe50Count").textContent = recipes.filter((x) =>
+      String(x.size || "").includes("50"),
+    ).length;
+
+    $("recipe500Count").textContent = recipes.filter((x) =>
+      String(x.size || "").includes("500"),
+    ).length;
+
+    if (recipes.length === 0) {
+      $("recipeTableBody").innerHTML = `
+
+        <tr>
+
+          <td
+            colspan="7"
+            class="empty"
+          >
+            ยังไม่มีข้อมูลสูตร
+          </td>
+
+        </tr>
+
+      `;
+
+      return;
+    }
+
+    $("recipeTableBody").innerHTML = recipes
+      .map(
+        (x) => `
+
+          <tr>
+
+            <td>
+              ${escapeHtml(x.code || "-")}
+            </td>
+
+            <td>
+              ${escapeHtml(x.name || "-")}
+            </td>
+
+            <td>
+              ${escapeHtml(x.size || "-")}
+            </td>
+
+            <td>
+              ${money(x.productionQty || 0)}
+            </td>
+
+            <td>
+              ฿${money(x.totalDM || 0)}
+            </td>
+
+            <td>
+              ฿${money(x.dmPerUnit || 0)}
+            </td>
+
+            <td>
+              -
+            </td>
+
+          </tr>
+
+        `,
+      )
+      .join("");
+  },
+);
+
+// ======================================================
+// RECIPE BUTTON
+// ======================================================
+
+$("addRecipeBtn").addEventListener("click", () => {
+  showStatus("ส่วนสูตรเครื่องแกงจะทำต่อเมื่อมีข้อมูลสูตร");
+});
+
+// ======================================================
+// END
+// ======================================================
+
+console.log("Curry Cost System loaded successfully.");
