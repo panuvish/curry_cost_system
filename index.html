@@ -7,9 +7,89 @@
     <title>ระบบต้นทุนเครื่องแกง</title>
 
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
   </head>
 
-  <body>
+  <body class="auth-locked">
+    <!-- =========================
+       LOGIN
+  ========================== -->
+
+    <div
+      id="authScreen"
+      class="auth-screen"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="authTitle"
+    >
+      <div class="auth-card">
+        <div class="auth-brand">🌶️ Curry Cost</div>
+
+        <div id="authLoading" class="auth-loading" role="status">
+          <span class="auth-spinner"></span>
+          <span id="authLoadingText">กำลังตรวจสอบการเข้าสู่ระบบ…</span>
+        </div>
+
+        <div id="authPanel" class="hidden">
+          <h1 id="authTitle">เข้าสู่ระบบ</h1>
+          <p id="authHint" class="auth-hint">
+            กรอกอีเมลและรหัสผ่านเพื่อใช้งานระบบต้นทุนเครื่องแกง
+          </p>
+
+          <form id="authForm">
+            <label>
+              อีเมล
+              <input
+                id="authEmail"
+                type="email"
+                autocomplete="username"
+                inputmode="email"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+              />
+            </label>
+
+            <label>
+              รหัสผ่าน
+              <div class="pw-wrap">
+                <input
+                  id="authPassword"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  id="authShowPassword"
+                  class="pw-toggle"
+                  aria-label="แสดงรหัสผ่าน"
+                >
+                  แสดง
+                </button>
+              </div>
+            </label>
+
+            <p id="authMessage" class="auth-message" role="alert" hidden></p>
+
+            <button type="submit" id="authSubmit" class="primary auth-submit">
+              เข้าสู่ระบบ
+            </button>
+
+            <div class="auth-links">
+              <button type="button" id="authForgot" class="auth-link">
+                ลืมรหัสผ่าน?
+              </button>
+
+              <button type="button" id="authToggle" class="auth-link" hidden>
+                ยังไม่มีบัญชี? สมัครสมาชิก
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- =========================
        SIDEBAR
   ========================== -->
@@ -42,6 +122,14 @@
 
         <button class="nav-btn" data-section="sales">🏷️ ราคาขาย</button>
       </nav>
+
+      <div class="sidebar-user">
+        <span id="userEmail" class="user-email"></span>
+
+        <button type="button" id="logoutBtn" class="logout-btn">
+          🚪 ออกจากระบบ
+        </button>
+      </div>
     </aside>
 
     <!-- =========================
@@ -733,8 +821,8 @@
 
     <div id="status" class="status"></div>
 
-    <!-- APP -->
+    <!-- APP: auth.js โหลด app.js ให้หลังล็อกอินสำเร็จ -->
 
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/auth.js"></script>
   </body>
 </html>

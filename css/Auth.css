@@ -1,0 +1,230 @@
+/* =====================================================
+   AUTH — LOGIN SCREEN
+   ใช้สีเดียวกับระบบเดิม (#173b7a / #24549d)
+===================================================== */
+
+.auth-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: #173b7a;
+}
+
+/* ล็อกอยู่: โชว์หน้าล็อกอิน ซ่อนตัวระบบทั้งหมด */
+body.auth-locked .auth-screen {
+  display: flex;
+}
+
+body.auth-locked > .sidebar,
+body.auth-locked > .main {
+  display: none !important;
+}
+
+.auth-screen input,
+.auth-screen button {
+  font-family: inherit;
+}
+
+.auth-card {
+  width: min(400px, 100%);
+  margin: auto;
+  padding: 32px 28px;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.auth-brand {
+  margin-bottom: 4px;
+  color: #173b7a;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.auth-card h1 {
+  margin: 20px 0 6px;
+  font-size: 26px;
+}
+
+.auth-hint {
+  margin: 0 0 22px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* loading */
+
+.auth-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0 6px;
+  color: #6b7280;
+}
+
+.auth-spinner {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #dbe3f1;
+  border-top-color: #24549d;
+  border-radius: 50%;
+  animation: auth-spin 0.8s linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-spinner {
+    animation-duration: 3s;
+  }
+}
+
+/* form */
+
+/* 16px กัน iPhone/iPad ซูมหน้าจออัตโนมัติตอนแตะช่องกรอก */
+.auth-screen input {
+  padding: 12px;
+  font-size: 16px;
+}
+
+.auth-screen input:focus,
+.auth-screen button:focus-visible,
+.logout-btn:focus-visible {
+  outline: 2px solid #24549d;
+  outline-offset: 1px;
+}
+
+.pw-wrap {
+  position: relative;
+}
+
+.pw-wrap input {
+  padding-right: 72px;
+}
+
+.pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  padding: 8px 12px;
+  background: transparent;
+  color: #24549d;
+  font-size: 14px;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 4px;
+  padding: 13px;
+  font-size: 16px;
+}
+
+.auth-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.auth-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-message[hidden] {
+  display: none;
+}
+
+.auth-message.error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.auth-message.info {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.auth-link {
+  padding: 6px 0;
+  background: transparent;
+  color: #24549d;
+  font-size: 14px;
+}
+
+.auth-link[hidden] {
+  display: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* =====================================================
+   SIDEBAR — USER + LOGOUT
+===================================================== */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar nav {
+  margin-bottom: 24px;
+}
+
+.sidebar-user {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-email {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  background: transparent;
+  color: white;
+  font-size: 15px;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #24549d;
+}
+
+.logout-btn:focus-visible {
+  outline-color: white;
+}
