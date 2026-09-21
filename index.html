@@ -98,29 +98,41 @@
       <h2>🌶️ Curry Cost</h2>
 
       <nav>
-        <button class="nav-btn" data-section="employees">👥 พนักงาน</button>
+        <button class="nav-btn active" data-section="dashboard">
+          🏠 Dashboard
+        </button>
 
-        <button class="nav-btn active" data-section="ingredients">
-          🌿 วัตถุดิบ
+        <button class="nav-btn" data-section="employees">
+          👥 1. พนักงาน
+        </button>
+
+        <button class="nav-btn" data-section="products">
+          🌶️ 2. เครื่องแกง
         </button>
 
         <button class="nav-btn" data-section="recipes">
-          🍛 สูตรเครื่องแกง
+          📋 3. สูตรการผลิต
+        </button>
+
+        <button class="nav-btn" data-section="ingredients">
+          🌿 4. วัตถุดิบและสต็อก
         </button>
 
         <button class="nav-btn" data-section="stock">
-          📦 รับเข้า / จ่ายออก
+          📦 5. รับเข้า / เบิกวัตถุดิบ
         </button>
 
-        <button class="nav-btn" data-section="labor">💰 ค่าแรง</button>
-
-        <button class="nav-btn" data-section="overhead">⚙️ OH</button>
-
-        <button class="nav-btn" data-section="ohAllocation">
-          📊 จัดสรร OH
+        <button class="nav-btn" data-section="labor">
+          💰 6. ค่าแรงและเงินเดือน
         </button>
 
-        <button class="nav-btn" data-section="sales">🏷️ ราคาขาย</button>
+        <button class="nav-btn" data-section="overhead">
+          ⚙️ 7. ค่าใช้จ่ายการผลิต (OH)
+        </button>
+
+        <button class="nav-btn" data-section="sales">
+          🛒 8. การขาย
+        </button>
       </nav>
 
       <div class="sidebar-user">
@@ -144,6 +156,81 @@
 
         <p>Firebase Firestore • Realtime CRUD</p>
       </header>
+
+      <!-- =========================
+         EMPLOYEES
+    ========================== -->
+
+      <!-- =========================
+         DASHBOARD
+    ========================== -->
+
+      <section id="dashboard" class="section active">
+        <div class="section-head">
+          <div>
+            <h2>🏠 Dashboard</h2>
+            <p>ภาพรวมทั้งระบบ ไม่ต้องเข้าไปเปิดทีละเมนู</p>
+          </div>
+        </div>
+
+        <div class="summary dashboard-summary">
+          <div class="card">
+            <span>วัตถุดิบคงเหลือ (มูลค่า)</span>
+            <strong id="dashRawStockValue">฿0.00</strong>
+          </div>
+
+          <div class="card">
+            <span>พนักงานทั้งหมด</span>
+            <strong id="dashEmployeeCount">0 คน</strong>
+          </div>
+
+          <div class="card">
+            <span>ค่าแรงงานผลิต (DL) เดือนนี้</span>
+            <strong id="dashDLThisMonth">฿0.00</strong>
+          </div>
+
+          <div class="card">
+            <span>OH ประมาณการ/เดือน</span>
+            <strong id="dashOHThisMonth">฿0.00</strong>
+          </div>
+
+          <div class="card muted">
+            <span>สินค้าสำเร็จรูป</span>
+            <strong>ยังไม่มีระบบผลิต</strong>
+          </div>
+
+          <div class="card muted">
+            <span>ยอดขาย / COGS / กำไรขั้นต้น เดือนนี้</span>
+            <strong>ยังไม่มีระบบขายจริง</strong>
+          </div>
+        </div>
+
+        <div class="section-sub-head">
+          <div>
+            <h2>รายการล่าสุด</h2>
+            <p>รวมจากวัตถุดิบ (รับ/เบิก) และเวลาทำงาน</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>เวลา</th>
+                <th>รายการ</th>
+                <th>ผู้ทำ / รายละเอียด</th>
+                <th>จำนวน</th>
+              </tr>
+            </thead>
+
+            <tbody id="dashRecentTableBody">
+              <tr>
+                <td colspan="4" class="empty">ยังไม่มีข้อมูล</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <!-- =========================
          EMPLOYEES
@@ -213,10 +300,27 @@
       </section>
 
       <!-- =========================
+         PRODUCTS (เครื่องแกง)
+    ========================== -->
+
+      <section id="products" class="section">
+        <div class="section-head">
+          <div>
+            <h2>🌶️ 2. เครื่องแกง</h2>
+            <p>สินค้าสำเร็จรูป สรุปจากสูตรการผลิตที่มีอยู่ (เมนู 3)</p>
+          </div>
+        </div>
+
+        <div id="productCards" class="product-cards">
+          <p class="empty">ยังไม่มีสูตร — ไปที่เมนู “3. สูตรการผลิต” เพื่อเพิ่มสูตรก่อน</p>
+        </div>
+      </section>
+
+      <!-- =========================
          INGREDIENTS
     ========================== -->
 
-      <section id="ingredients" class="section active">
+      <section id="ingredients" class="section">
         <div class="section-head">
           <div>
             <h2>🌿 วัตถุดิบและบรรจุภัณฑ์</h2>
@@ -413,29 +517,246 @@
       </section>
 
       <!-- =========================
-         LABOR
+         LABOR & PAYROLL (ค่าแรงและเงินเดือน)
     ========================== -->
 
       <section id="labor" class="section">
         <div class="section-head">
           <div>
-            <h2>💰 ค่าแรง (DL)</h2>
-            <p>อัตราค่าแรงต่อชั่วโมง</p>
+            <h2>💰 6. ค่าแรงและเงินเดือน</h2>
+            <p>บันทึกเวลาทำงาน, รอบจ่ายเงินเดือน และประวัติการจ่าย</p>
           </div>
         </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>รหัส</th>
-                <th>ฝ่าย</th>
-                <th>บาท/ชั่วโมง</th>
-              </tr>
-            </thead>
+        <div class="tab-bar">
+          <button
+            class="tab-btn active"
+            data-tab-group="labor"
+            data-tab="timesheet"
+          >
+            บันทึกเวลาทำงาน
+          </button>
 
-            <tbody id="laborTable"></tbody>
-          </table>
+          <button class="tab-btn" data-tab-group="labor" data-tab="payroll">
+            รอบจ่ายเงินเดือน
+          </button>
+
+          <button
+            class="tab-btn"
+            data-tab-group="labor"
+            data-tab="payhistory"
+          >
+            ประวัติการจ่าย
+          </button>
+        </div>
+
+        <!-- TAB 1: บันทึกเวลาทำงาน -->
+
+        <div class="tab-panel active" data-tab-group="labor" data-tab-panel="timesheet">
+          <div class="table-wrap" style="padding: 18px 18px 6px;">
+            <form id="timesheetForm">
+              <div class="grid-2">
+                <label>
+                  วันที่
+                  <input id="tsDate" type="date" required />
+                </label>
+
+                <label>
+                  พนักงาน
+                  <select id="tsEmployee" required>
+                    <option value="">-- เลือกพนักงาน --</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="grid-2">
+                <label>
+                  ประเภทงาน
+                  <select id="tsWorkType">
+                    <option value="production">ผลิต (Direct Labor)</option>
+                    <option value="other">
+                      งานอื่น / ไม่ใช่วันผลิต (ทางอ้อม)
+                    </option>
+                  </select>
+                </label>
+
+                <label>
+                  ชั่วโมงทำงาน
+                  <input
+                    id="tsHours"
+                    type="number"
+                    min="0"
+                    max="24"
+                    step="0.25"
+                    placeholder="เช่น 6"
+                    required
+                  />
+                </label>
+              </div>
+
+              <label>
+                หมายเหตุ
+                <input id="tsNote" placeholder="เช่น ผลิตรอบเครื่องแกงส้ม" />
+              </label>
+
+              <div class="form-actions">
+                <button type="submit" class="primary">+ บันทึกเวลา</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="section-sub-head">
+            <div>
+              <h2>สรุปรายเดือน</h2>
+              <p>เลือกเดือนเพื่อดูชั่วโมงและค่าแรงแยกทางตรง/ทางอ้อม</p>
+            </div>
+
+            <input
+              id="tsMonthFilter"
+              type="month"
+              class="search"
+              style="max-width: 200px;"
+            />
+          </div>
+
+          <div class="summary">
+            <div class="card">
+              <span>ชั่วโมงงานผลิต (DL)</span>
+              <strong id="tsProductionHours">0 ชม.</strong>
+            </div>
+
+            <div class="card">
+              <span>ค่าแรงงานผลิต (DL) โดยประมาณ</span>
+              <strong id="tsProductionAmount">฿0.00</strong>
+            </div>
+
+            <div class="card">
+              <span>ชั่วโมงงานอื่น (ทางอ้อม)</span>
+              <strong id="tsOtherHours">0 ชม.</strong>
+            </div>
+
+            <div class="card">
+              <span>ค่าแรงงานอื่น (ทางอ้อม → OH) โดยประมาณ</span>
+              <strong id="tsOtherAmount">฿0.00</strong>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>วันที่</th>
+                  <th>พนักงาน</th>
+                  <th>ประเภท</th>
+                  <th>ชั่วโมง</th>
+                  <th>ค่าแรง</th>
+                  <th>จัดการ</th>
+                </tr>
+              </thead>
+
+              <tbody id="timesheetTableBody">
+                <tr>
+                  <td colspan="6" class="empty">ยังไม่มีบันทึกเวลาในเดือนนี้</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 2: รอบจ่ายเงินเดือน -->
+
+        <div class="tab-panel" data-tab-group="labor" data-tab-panel="payroll">
+          <div class="section-sub-head">
+            <div>
+              <h2>รอบจ่ายเงินเดือน</h2>
+              <p>
+                รวมชั่วโมง × อัตราค่าแรงของแต่ละคนในเดือนนั้นเป็นยอดจ่ายจริง
+                พร้อมสถานะจ่ายแล้ว/ยังไม่จ่าย
+              </p>
+            </div>
+
+            <input
+              id="payrollMonth"
+              type="month"
+              class="search"
+              style="max-width: 200px;"
+            />
+          </div>
+
+          <div class="summary">
+            <div class="card">
+              <span>ยอดจ่ายรวมเดือนนี้</span>
+              <strong id="payrollTotalAmount">฿0.00</strong>
+            </div>
+
+            <div class="card">
+              <span>จ่ายแล้ว</span>
+              <strong id="payrollPaidAmount">฿0.00</strong>
+            </div>
+
+            <div class="card">
+              <span>ยังไม่จ่าย</span>
+              <strong id="payrollPendingAmount">฿0.00</strong>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>พนักงาน</th>
+                  <th>แผนก</th>
+                  <th>ชม. ผลิต (DL)</th>
+                  <th>ชม. งานอื่น</th>
+                  <th>ชม. รวม</th>
+                  <th>ยอดจ่าย</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+
+              <tbody id="payrollTableBody">
+                <tr>
+                  <td colspan="7" class="empty">ยังไม่มีบันทึกเวลาในเดือนนี้</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 3: ประวัติการจ่าย -->
+
+        <div class="tab-panel" data-tab-group="labor" data-tab-panel="payhistory">
+          <div class="section-sub-head">
+            <div>
+              <h2>ประวัติการจ่าย</h2>
+              <p>เฉพาะรายการที่ทำเครื่องหมายว่า “จ่ายแล้ว”</p>
+            </div>
+          </div>
+
+          <input
+            id="payHistorySearch"
+            class="search"
+            placeholder="ค้นหาเดือน (เช่น 2026-08) หรือชื่อ/รหัสพนักงาน..."
+          />
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>เดือน</th>
+                  <th>พนักงาน</th>
+                  <th>ยอดจ่าย</th>
+                  <th>วันที่จ่าย</th>
+                </tr>
+              </thead>
+
+              <tbody id="payHistoryTableBody">
+                <tr>
+                  <td colspan="4" class="empty">ยังไม่มีประวัติการจ่าย</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -446,7 +767,7 @@
       <section id="overhead" class="section">
         <div class="section-head">
           <div>
-            <h2>⚙️ ค่าใช้จ่ายการผลิต (OH)</h2>
+            <h2>⚙️ 7. ค่าใช้จ่ายการผลิต (OH)</h2>
             <p>ข้อมูลค่าใช้จ่ายสำหรับนำไปคำนวณต้นทุน</p>
           </div>
         </div>
@@ -465,56 +786,21 @@
             <tbody id="overheadTable"></tbody>
           </table>
         </div>
-      </section>
 
-      <!-- =========================
-         OH ALLOCATION
-    ========================== -->
-
-      <section id="ohAllocation" class="section">
-        <div class="section-head">
+        <div class="section-sub-head">
           <div>
-            <h2>📊 การจัดสรร OH</h2>
-            <p>ฐานการจัดสรร: ชั่วโมงแรงงาน</p>
+            <h2>อุปกรณ์ / สินทรัพย์</h2>
+            <p>
+              ทะเบียนสินทรัพย์พร้อมคำนวณค่าเสื่อมแบบเส้นตรง (Straight-line)
+              แล้วดึงเข้า OH อัตโนมัติ
+            </p>
           </div>
         </div>
 
-        <div class="summary">
-          <div class="card">
-            <span>ชั่วโมงแรงงานรวม</span>
-            <strong id="ohTotalHours">0 ชม.</strong>
-          </div>
-
-          <div class="card">
-            <span>ค่าแรงรวม</span>
-            <strong id="ohTotalLabor">฿0.00</strong>
-          </div>
-
-          <div class="card">
-            <span>OH รวม</span>
-            <strong id="ohTotalCost">฿0.00</strong>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ฝ่าย</th>
-                <th>จำนวนคน</th>
-                <th>ชั่วโมงแรงงาน</th>
-                <th>ค่าแรง/วัน</th>
-                <th>สัดส่วน</th>
-                <th>ฐานจัดสรร</th>
-              </tr>
-            </thead>
-
-            <tbody id="ohAllocationTable">
-              <tr>
-                <td colspan="6" class="empty">ยังไม่มีข้อมูล</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="placeholder-box">
+          ยังไม่ได้สร้าง — ตอนนี้ค่าเสื่อมยังกรอกเป็นตัวเลขคงที่ในตาราง OH
+          ด้านบน (OH002-OH004) ถ้าต้องการทะเบียนสินทรัพย์จริง (ราคาซื้อ,
+          อายุการใช้งาน, คำนวณค่าเสื่อมอัตโนมัติ) บอกได้เลยครับ
         </div>
       </section>
 
@@ -525,9 +811,16 @@
       <section id="sales" class="section">
         <div class="section-head">
           <div>
-            <h2>🏷️ ราคาขาย</h2>
+            <h2>🛒 8. การขาย</h2>
             <p>ราคาขายปลีกและราคาขายส่ง</p>
           </div>
+        </div>
+
+        <div class="placeholder-box">
+          ตารางด้านล่างเป็นราคาขายอ้างอิง (ยังไม่ใช่ใบขายจริง) —
+          การบันทึกยอดขายจริงพร้อมตัดสต็อกสินค้าสำเร็จรูปและคำนวณ COGS
+          อัตโนมัติ ยังไม่ได้สร้าง เพราะต้องมีระบบสต็อกแบบ Lot
+          และระบบผลิตที่สร้างสต็อกสินค้าสำเร็จรูปให้ตัดก่อน
         </div>
 
         <div class="table-wrap">
@@ -821,10 +1114,9 @@
 
     <div id="status" class="status"></div>
 
-    <!-- APP: auth.js โหลด app.js ให้หลังล็อกอินสำเร็จ -->
+    <!-- APP: auth.js โหลด app.js / employees.js / timesheet.js / recipes.js ให้หลังล็อกอินสำเร็จ -->
 
     <script type="module" src="js/auth.js"></script>
-<script type="module" src="js/recipes.js"></script>
     
   </body>
 </html>
