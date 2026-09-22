@@ -20,6 +20,7 @@ const employeeCol = collection(db, "employees");
 const timesheetCol = collection(db, "timesheets");
 const overheadCol = collection(db, "overhead");
 const stockTransactionCol = collection(db, "stock_transactions");
+const moCol = collection(db, "production_orders");
 
 const $ = (id) => document.getElementById(id);
 
@@ -44,6 +45,7 @@ let dashEmployees = [];
 let dashTimesheets = [];
 let dashOverhead = [];
 let dashStockTx = [];
+let dashMoOrders = [];
 
 function currentMonthStr() {
   const d = new Date();
@@ -78,6 +80,12 @@ onSnapshot(overheadCol, (snapshot) => {
 
 onSnapshot(stockTransactionCol, (snapshot) => {
   dashStockTx = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  renderRecentActivity();
+});
+
+onSnapshot(moCol, (snapshot) => {
+  dashMoOrders = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  renderDashboardCards();
   renderRecentActivity();
 });
 
@@ -119,6 +127,26 @@ function renderDashboardCards() {
 
   if ($("dashOHThisMonth"))
     $("dashOHThisMonth").textContent = `฿${money(ohTotal)}`;
+
+  const moThisMonth = dashMoOrders.filter((mo) =>
+    String(mo.date || "").startsWith(month),
+  );
+
+  const producedQty = moThisMonth.reduce(
+    (sum, mo) => sum + Number(mo.actualQty || 0),
+    0,
+  );
+
+  const productionCost = moThisMonth.reduce(
+    (sum, mo) => sum + Number(mo.totalCost || 0),
+    0,
+  );
+
+  if ($("dashProducedQty"))
+    $("dashProducedQty").textContent = `${producedQty} หน่วย`;
+
+  if ($("dashProductionCost"))
+    $("dashProductionCost").textContent = `฿${money(productionCost)}`;
 }
 
 // ======================================================
@@ -143,7 +171,14 @@ function renderRecentActivity() {
     qty: `${Number(x.hours || 0)} ชม.`,
   }));
 
-  const merged = [...stockItems, ...tsItems]
+  const moItems = dashMoOrders.map((x) => ({
+    seconds: x.createdAt?.seconds || 0,
+    label: `🏭 ${x.moCode || "ใบผลิต"}`,
+    who: `${x.recipeName || ""} (${x.packageSize || ""})`.trim(),
+    qty: `${Number(x.actualQty || 0)} หน่วย`,
+  }));
+
+  const merged = [...stockItems, ...tsItems, ...moItems]
     .sort((a, b) => b.seconds - a.seconds)
     .slice(0, 8);
 

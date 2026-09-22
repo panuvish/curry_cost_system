@@ -15,21 +15,9 @@ import { firebaseConfig } from "./firebase-config.js";
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const ingredientCol = collection(db, "ingredients");
-const employeeCol = collection(db, "employees");
-const timesheetCol = collection(db, "timesheets");
-const overheadCol = collection(db, "overhead");
-const stockTransactionCol = collection(db, "stock_transactions");
-const moCol = collection(db, "production_orders");
+const recipeCol = collection(db, "recipes");
 
 const $ = (id) => document.getElementById(id);
-
-function money(value) {
-  return Number(value || 0).toLocaleString("th-TH", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -40,170 +28,83 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-let dashIngredients = [];
-let dashEmployees = [];
-let dashTimesheets = [];
-let dashOverhead = [];
-let dashStockTx = [];
-let dashMoOrders = [];
-
-function currentMonthStr() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+// ตัดขนาดบรรจุ/ตัวเลขท้ายชื่อออก เพื่อจัดกลุ่มสูตร "50g" กับ "500g"
+// ของเครื่องแกงชนิดเดียวกันให้เป็นสินค้าใบเดียวกัน
+function productKey(recipeName) {
+  return String(recipeName || "ไม่ระบุชื่อ")
+    .replace(/\s*\(?\d+\s*(g|kg|กรัม|กก\.?)\)?\s*$/i, "")
+    .trim() || "ไม่ระบุชื่อ";
 }
 
-// ======================================================
-// LISTENERS (read-only — no forms, safe to duplicate)
-// ======================================================
+onSnapshot(
+  recipeCol,
+  (snapshot) => {
+    const recipes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderProductCards(recipes);
+  },
+  (error) => {
+    console.error(error);
+  },
+);
 
-onSnapshot(ingredientCol, (snapshot) => {
-  dashIngredients = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-  renderDashboardCards();
-});
+function renderProductCards(recipes) {
+  const container = $("productCards");
+  if (!container) return;
 
-onSnapshot(employeeCol, (snapshot) => {
-  dashEmployees = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-  renderDashboardCards();
-});
-
-onSnapshot(timesheetCol, (snapshot) => {
-  dashTimesheets = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-  renderDashboardCards();
-  renderRecentActivity();
-});
-
-onSnapshot(overheadCol, (snapshot) => {
-  dashOverhead = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-  renderDashboardCards();
-});
-
-onSnapshot(stockTransactionCol, (snapshot) => {
-  dashStockTx = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-  renderRecentActivity();
-});
-
-onSnapshot(moCol, (snapshot) => {
-  dashMoOrders = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-  renderDashboardCards();
-  renderRecentActivity();
-});
-
-// ======================================================
-// SUMMARY CARDS
-// ======================================================
-
-function renderDashboardCards() {
-  const rawStockValue = dashIngredients
-    .filter((x) => x.category === "DM")
-    .reduce(
-      (sum, x) => sum + Number(x.stockQty || 0) * Number(x.costPerUnit || 0),
-      0,
-    );
-
-  if ($("dashRawStockValue"))
-    $("dashRawStockValue").textContent = `฿${money(rawStockValue)}`;
-
-  if ($("dashEmployeeCount"))
-    $("dashEmployeeCount").textContent = `${dashEmployees.length} คน`;
-
-  const month = currentMonthStr();
-
-  const dlThisMonth = dashTimesheets
-    .filter(
-      (x) =>
-        String(x.date || "").startsWith(month) && x.workType === "production",
-    )
-    .reduce((sum, x) => {
-      const employee = dashEmployees.find((e) => e.id === x.employeeId);
-      const rate = Number(employee?.hourlyRate ?? employee?.rate ?? 0);
-      return sum + Number(x.hours || 0) * rate;
-    }, 0);
-
-  if ($("dashDLThisMonth"))
-    $("dashDLThisMonth").textContent = `฿${money(dlThisMonth)}`;
-
-  const ohTotal = dashOverhead.reduce((sum, x) => sum + Number(x.rate || 0), 0);
-
-  if ($("dashOHThisMonth"))
-    $("dashOHThisMonth").textContent = `฿${money(ohTotal)}`;
-
-  const moThisMonth = dashMoOrders.filter((mo) =>
-    String(mo.date || "").startsWith(month),
-  );
-
-  const producedQty = moThisMonth.reduce(
-    (sum, mo) => sum + Number(mo.actualQty || 0),
-    0,
-  );
-
-  const productionCost = moThisMonth.reduce(
-    (sum, mo) => sum + Number(mo.totalCost || 0),
-    0,
-  );
-
-  if ($("dashProducedQty"))
-    $("dashProducedQty").textContent = `${producedQty} หน่วย`;
-
-  if ($("dashProductionCost"))
-    $("dashProductionCost").textContent = `฿${money(productionCost)}`;
-}
-
-// ======================================================
-// RECENT ACTIVITY (รวมสต็อก + บันทึกเวลา ล่าสุด 8 รายการ)
-// ======================================================
-
-function renderRecentActivity() {
-  const table = $("dashRecentTableBody");
-  if (!table) return;
-
-  const stockItems = dashStockTx.map((x) => ({
-    seconds: x.createdAt?.seconds || 0,
-    label: x.type === "IN" ? "🟢 รับเข้าวัตถุดิบ" : "🔴 เบิกวัตถุดิบ",
-    who: x.ingredientName || "-",
-    qty: `${Number(x.qty || 0)} หน่วย`,
-  }));
-
-  const tsItems = dashTimesheets.map((x) => ({
-    seconds: x.createdAt?.seconds || 0,
-    label: x.workType === "production" ? "🏭 บันทึกเวลา (ผลิต)" : "🕒 บันทึกเวลา (งานอื่น)",
-    who: `${x.employeeCode || ""} ${x.employeeName || ""}`.trim() || "-",
-    qty: `${Number(x.hours || 0)} ชม.`,
-  }));
-
-  const moItems = dashMoOrders.map((x) => ({
-    seconds: x.createdAt?.seconds || 0,
-    label: `🏭 ${x.moCode || "ใบผลิต"}`,
-    who: `${x.recipeName || ""} (${x.packageSize || ""})`.trim(),
-    qty: `${Number(x.actualQty || 0)} หน่วย`,
-  }));
-
-  const merged = [...stockItems, ...tsItems, ...moItems]
-    .sort((a, b) => b.seconds - a.seconds)
-    .slice(0, 8);
-
-  if (merged.length === 0) {
-    table.innerHTML = `
-      <tr>
-        <td colspan="4" class="empty">ยังไม่มีข้อมูล</td>
-      </tr>
+  if (recipes.length === 0) {
+    container.innerHTML = `
+      <p class="empty">ยังไม่มีสูตร — ไปที่เมนู "3. สูตรการผลิต" เพื่อเพิ่มสูตรก่อน</p>
     `;
     return;
   }
 
-  table.innerHTML = merged
-    .map((item) => {
-      const time = item.seconds
-        ? new Date(item.seconds * 1000).toLocaleString("th-TH")
-        : "-";
+  const groups = {};
+
+  recipes.forEach((recipe) => {
+    const key = productKey(recipe.recipeName);
+
+    if (!groups[key]) {
+      groups[key] = { name: key, variants: [] };
+    }
+
+    groups[key].variants.push(recipe);
+  });
+
+  container.innerHTML = Object.values(groups)
+    .sort((a, b) => a.name.localeCompare(b.name, "th"))
+    .map((group) => {
+      const sizeChips = group.variants
+        .map(
+          (v) =>
+            `<span class="size-chip">${escapeHtml(v.packageSize || "-")}</span>`,
+        )
+        .join("");
+
+      const avgDm =
+        group.variants.reduce(
+          (sum, v) => sum + Number(v.dmCostPerUnit || 0),
+          0,
+        ) / group.variants.length;
 
       return `
-        <tr>
-          <td>${time}</td>
-          <td>${item.label}</td>
-          <td>${escapeHtml(item.who)}</td>
-          <td>${escapeHtml(item.qty)}</td>
-        </tr>
+        <div class="product-card">
+          <h3>🌶️ ${escapeHtml(group.name)}</h3>
+
+          <div class="product-sizes">
+            ${sizeChips}
+          </div>
+
+          <dl>
+            <dt>จำนวนสูตรย่อย</dt>
+            <dd>${group.variants.length} สูตร</dd>
+
+            <dt>DM เฉลี่ย/หน่วย</dt>
+            <dd>฿${avgDm.toFixed(2)}</dd>
+
+            <dt>สต็อกสำเร็จรูป</dt>
+            <dd>ยังไม่มี (รอระบบผลิต)</dd>
+          </dl>
+        </div>
       `;
     })
     .join("");
